@@ -80,6 +80,13 @@
   --input: #f3f1ed; /* Tertiary */
   --ring: #8a7968; /* Secondary */
 
+  /* Design tokens */
+  --surface-container: #efeeec;
+  --surface-container-low: #f4f3f1;
+  --surface-container-highest: #e3e2e0;
+  --on-surface-variant: #444748;
+  --outline-variant: #c4c7c7;
+
   /* Charts (Kept original) */
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
