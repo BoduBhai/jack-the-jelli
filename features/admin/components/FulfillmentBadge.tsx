@@ -1,4 +1,4 @@
-import type { FulfillmentStatus } from "./types";
+import type { FulfillmentStatus } from "@/features/admin/lib/types";
 import { AlertCircle } from "lucide-react";
 
 interface FulfillmentBadgeProps {

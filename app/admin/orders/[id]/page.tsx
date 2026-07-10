@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { ORDERS } from "@/components/admin/orders/mock-data";
+import { ORDERS } from "@/features/admin/lib/mock-data";
 import Link from "next/link";
 import { useState } from "react";
 

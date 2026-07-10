@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
-import { useInView } from "@/hooks/useInView";
+import { useInView } from "@/lib/hooks/useInView";
 import Link from "next/link";
+
+// TODO: Remove this once we have a proper image service
 
 const flameImage =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuCHtIARaKt5BvtQN4y3QXm-c-ZFBa8b15Wy5cQoRhRiInTj483QUDl26DBNdnBm6mwXh0J5vjJi8h1RKg0JCP9Z5BIMhMEiwlVGDetafXRgU5Wh46B5-lG0d6IJ0J1P35nu735UGEb61fGDepBSnwGT_moQ3bii2YU8p_Y00Mhw5hlbVdGSDNp2FoWI5PIG-ifj49ZZgv853DBUW3_FlmDEHjZZaQJtOvwjPzwAPtGR-4jhXMMYqh4n0iFIKkxL7urEqsqZQxVdh0OD";
@@ -40,7 +42,7 @@ export default function ProductSection() {
                   : "translate-y-10 opacity-0"
               }`}
             >
-              <span className="mb-4 block text-[12px] font-semibold tracking-widest text-(--on-surface-variant) uppercase">
+              <span className="text-on-surface-variant mb-4 block text-[12px] font-semibold tracking-widest uppercase">
                 01 / Signature
               </span>
             </div>
@@ -68,7 +70,7 @@ export default function ProductSection() {
                   : "translate-y-10 opacity-0"
               }`}
             >
-              <p className="mb-8 max-w-sm text-[18px] leading-[1.6] text-(--on-surface-variant)">
+              <p className="text-on-surface-variant mb-8 max-w-sm text-[18px] leading-[1.6]">
                 Hand-embossed with a flame motif, this bifold is our signature
                 piece. Full-grain leather that deepens with time. Six card
                 slots, one unlined bill compartment.

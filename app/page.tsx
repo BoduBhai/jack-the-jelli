@@ -1,7 +1,7 @@
-import CraftsmanshipGrid from "@/components/homepage/CraftsmanshipGrid";
-import HeroSection from "@/components/homepage/HeroSection";
-import NavBar from "@/components/homepage/NavBar";
-import ProductSection from "@/components/homepage/ProductSection";
+import CraftsmanshipGrid from "@/features/homepage/components/CraftsmanshipGrid";
+import HeroSection from "@/features/homepage/components/HeroSection";
+import NavBar from "@/features/homepage/components/NavBar";
+import ProductSection from "@/features/homepage/components/ProductSection";
 
 export default function Home() {
   return (

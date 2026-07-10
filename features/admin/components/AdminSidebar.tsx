@@ -13,7 +13,7 @@ import {
   Users,
   Settings,
 } from "lucide-react";
-import Logo from "@/components/Logo";
+import Logo from "@/components/layout/Logo";
 
 const navItems = [
   { label: "Sales Overview", href: "/admin", icon: LayoutDashboard },

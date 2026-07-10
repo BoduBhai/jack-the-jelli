@@ -15,8 +15,8 @@ import {
 } from "@/components/ui/table";
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { ORDERS } from "@/components/admin/orders/mock-data";
-import FulfillmentBadge from "@/components/admin/orders/FulfillmentBadge";
+import { ORDERS } from "@/features/admin/lib/mock-data";
+import FulfillmentBadge from "@/features/admin/components/FulfillmentBadge";
 
 // *TODO: pagination — wire to real pagination logic when API is ready
 const ITEMS_PER_PAGE = 4;

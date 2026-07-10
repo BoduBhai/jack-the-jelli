@@ -1,4 +1,4 @@
-import { Order } from "./types";
+import { Order } from "@/features/admin/lib/types";
 
 // TODO: Delete this mock data once the API is ready
 

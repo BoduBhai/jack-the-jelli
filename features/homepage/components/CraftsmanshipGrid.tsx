@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import { Gem } from "lucide-react";
-import { useInView } from "@/hooks/useInView";
+import { useInView } from "@/lib/hooks/useInView";
+
+// TODO: Replace with actual images once we have them
 
 const craftsmanshipImages = {
   process:
@@ -62,13 +64,13 @@ export default function CraftsmanshipGrid() {
           {/* Icon + text box */}
           <div
             ref={ref2}
-            className={`flex flex-1 flex-col justify-center border border-[rgba(138,121,104,0.2)] bg-(--surface-container) p-8 transition-shadow duration-300 hover:shadow-[0px_12px_32px_rgba(26,26,26,0.04)] ${vis2 ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}
+            className={`bg-surface-container flex flex-1 flex-col justify-center border border-[rgba(138,121,104,0.2)] p-8 transition-shadow duration-300 hover:shadow-[0px_12px_32px_rgba(26,26,26,0.04)] ${vis2 ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}
           >
             <Gem className="text-foreground mb-6 h-8 w-8" />
             <h3 className="text-foreground mb-2 text-[18px] leading-[1.6] font-semibold">
               Vegetable Tanned
             </h3>
-            <p className="text-[16px] leading-[1.6] text-(--on-surface-variant)">
+            <p className="text-on-surface-variant text-[16px] leading-[1.6]">
               Sourced from the finest tanneries in Tuscany, utilizing organic
               tannins for a superior finish.
             </p>
