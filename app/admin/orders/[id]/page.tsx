@@ -64,25 +64,33 @@ export default function OrderDetailsPage() {
       }
     : null;
 
-  // *TODO: state for edit dialog — which field is being edited and its new value
+  type EditField = "fulfillment" | "payment" | null;
+
+  const [editField, setEditField] = useState<EditField>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // *TODO: close dialog handler
-  const handleClose = () => {
+  const openDialog = (field: EditField) => {
+    setEditField(field);
     setEditValue("");
     setSaveSuccess(false);
   };
 
+  const handleClose = () => {
+    setEditValue("");
+    setSaveSuccess(false);
+    setEditField(null);
+  };
+
   // *TODO: save handler — wire to API on submit
   const handleSave = async () => {
-    if (!editValue) return;
+    if (!editValue || !editField) return;
     setIsSaving(true);
     setSaveSuccess(false);
     try {
       // *TODO: API call here to update the order status
-      console.log(`Saving status to: ${editValue}`);
+      console.log(`Saving ${editField} status to: ${editValue}`);
       // Simulate network delay
       await new Promise((r) => setTimeout(r, 800));
       setSaveSuccess(true);
@@ -106,9 +114,9 @@ export default function OrderDetailsPage() {
           <p className="text-muted-foreground mt-2">
             No order matches <strong>#{params.id}</strong>
           </p>
-          <a href="/admin">
+          <Link href="/admin">
             <Button className="mt-6">Back to Orders</Button>
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -215,9 +223,9 @@ export default function OrderDetailsPage() {
                       {order.codStatus}
                     </span>
 
-                    <Dialog>
+                    <Dialog onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
                       <DialogTrigger asChild>
-                        <Button size="sm" className="bg-secondary">
+                        <Button size="sm" className="bg-secondary" onClick={() => openDialog("fulfillment")}>
                           <Pencil className="size-3.5" />
                         </Button>
                       </DialogTrigger>
@@ -235,7 +243,7 @@ export default function OrderDetailsPage() {
                           </Label>
                           <div className="flex flex-col gap-2 sm:flex-row">
                             {FULFILLMENT_OPTIONS.map((option) => {
-                              const isActive = editValue === option;
+                              const isActive = editField === "fulfillment" && editValue === option;
                               const isCancelled = option === "Cancelled";
                               return (
                                 <Button
@@ -265,7 +273,7 @@ export default function OrderDetailsPage() {
                         )}
                         <DialogFooter>
                           <DialogClose asChild>
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" onClick={handleClose}>
                               Cancel
                             </Button>
                           </DialogClose>
@@ -294,9 +302,9 @@ export default function OrderDetailsPage() {
                       {order.paymentStatus}
                     </span>
 
-                    <Dialog>
+                    <Dialog onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
                       <DialogTrigger asChild>
-                        <Button size="sm" className="bg-secondary">
+                        <Button size="sm" className="bg-secondary" onClick={() => openDialog("payment")}>
                           <Pencil className="size-3.5" />
                         </Button>
                       </DialogTrigger>
@@ -313,7 +321,7 @@ export default function OrderDetailsPage() {
                           </Label>
                           <div className="flex flex-col gap-2 sm:flex-row">
                             {PAYMENT_OPTIONS.map((option) => {
-                              const isActive = editValue === option;
+                              const isActive = editField === "payment" && editValue === option;
                               const isFailed = option === "failed";
                               return (
                                 <Button
@@ -343,7 +351,7 @@ export default function OrderDetailsPage() {
                         )}
                         <DialogFooter>
                           <DialogClose asChild>
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" onClick={handleClose}>
                               Cancel
                             </Button>
                           </DialogClose>
