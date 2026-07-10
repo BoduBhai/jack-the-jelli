@@ -1,0 +1,111 @@
+"use client";
+
+import Link from "next/link";
+import React from "react";
+import { usePathname } from "next/navigation";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import {
+  Menu,
+  LayoutDashboard,
+  Package,
+  Truck,
+  Users,
+  Settings,
+} from "lucide-react";
+import Logo from "@/components/layout/Logo";
+
+const navItems = [
+  { label: "Sales Overview", href: "/admin", icon: LayoutDashboard },
+  { label: "Inventory Control", href: "/admin/inventory", icon: Package },
+  { label: "Logistics", href: "/admin/logistics", icon: Truck },
+  { label: "Customers", href: "/admin/customers", icon: Users },
+  { label: "Settings", href: "/admin/settings", icon: Settings },
+] as const;
+
+// Shared nav items renderer — used by both desktop sidebar and mobile drawer
+function NavItems() {
+  const pathname = usePathname();
+
+  // Determine which nav item is active for the current pathname
+  let activeHref: string | null = null;
+  if (pathname) {
+    // 1. Exact match first
+    const exact = navItems.find((i) => i.href === pathname);
+    if (exact) activeHref = exact.href;
+    // 2. Longest prefix match (e.g. /admin/orders/... → /admin)
+    else {
+      let longest = "";
+      for (const i of navItems) {
+        if (
+          pathname.startsWith(i.href + "/") &&
+          i.href.length > longest.length
+        ) {
+          longest = i.href;
+        }
+      }
+      if (longest) activeHref = longest;
+    }
+  }
+
+  return (
+    <div className="flex flex-1 flex-col gap-2 overflow-y-auto px-2">
+      {navItems.map((item) => {
+        const isActive = activeHref === item.href;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`group flex items-center gap-4 py-3 pl-4 transition-all duration-300 ${
+              isActive
+                ? "text-primary border-primary translate-x-1 border-l-2 font-bold"
+                : "text-on-surface-variant hover:bg-surface-container-highest"
+            }`}
+          >
+            {React.createElement(item.icon, { className: "size-4" })}
+            <span className="text-[12px] leading-none font-(--font-inter) tracking-widest uppercase">
+              {item.label}
+            </span>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
+export default function AdminSidebar() {
+  return (
+    <>
+      {/* ── Mobile hamburger trigger ─────────────────────────── */}
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button
+            variant="ghost"
+            className="bg-background border-outline-variant/20 hover:bg-surface-container fixed top-4 left-4 z-50 size-10 rounded-none border p-0 md:hidden"
+          >
+            <Menu className="text-on-surface-variant size-5" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent
+          side="left"
+          className="border-outline-variant/20 w-60 rounded-none border-r p-0"
+        >
+          {/* Mobile drawer header */}
+          <div className="px-6 py-8">
+            <Logo />
+          </div>
+
+          {/* Mobile nav items */}
+          <NavItems />
+        </SheetContent>
+      </Sheet>
+
+      {/* ── Desktop sidebar (hidden on mobile) ───────────────── */}
+      <nav className="bg-surface-container-low border-outline-variant/20 fixed top-0 left-0 z-40 hidden h-screen w-64 flex-col gap-8 border-r py-2 md:flex">
+        <Logo priority />
+
+        <NavItems />
+      </nav>
+    </>
+  );
+}

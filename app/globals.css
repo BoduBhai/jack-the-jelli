@@ -50,6 +50,13 @@
 
   /* Explicit custom tokens mapped for utilities (e.g., bg-tertiary) */
   --color-tertiary: #f3f1ed;
+
+  /* Material Design tokens — mapped so bg-/text-/border-* utilities work */
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-outline-variant: var(--outline-variant);
 }
 
 :root {

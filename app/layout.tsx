@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { EB_Garamond, Inter } from "next/font/google";
 import "./globals.css";
-import Footer from "@/components/homepage/Footer";
+import ClientFooter from "@/components/layout/ClientFooter";
 
 const garamond = EB_Garamond({
   variable: "--font-garamond",
@@ -28,11 +28,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${garamond.variable} ${inter.variable} h-full scroll-smooth`}
     >
       <body className="text-primary m-0 flex min-h-full flex-col font-(--font-inter) antialiased">
         {children}
-        <Footer />
+        <ClientFooter />
       </body>
     </html>
   );

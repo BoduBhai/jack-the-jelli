@@ -40,8 +40,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-phases
-
-designs
-
 .agents
+
+docs/
+
+.vscode/mcp.json
+
+skills-lock.json
+
