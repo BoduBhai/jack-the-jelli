@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Menu, X, User, ShoppingBag } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
+import Logo from "../Logo";
 
 const navLinks = [
   { label: "Collection", href: "#collection" },
@@ -61,14 +61,7 @@ export default function NavBar() {
             href="#"
             className="block w-35 transition-opacity hover:opacity-80"
           >
-            <Image
-              src="/logo.svg"
-              alt="JACK THE JELLI"
-              className="h-auto w-full object-contain"
-              loading="eager"
-              width={140}
-              height={140}
-            />
+            <Logo priority />
           </Link>
         </div>
 

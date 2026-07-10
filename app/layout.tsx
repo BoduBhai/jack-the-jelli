@@ -28,6 +28,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${garamond.variable} ${inter.variable} h-full scroll-smooth`}
     >
       <body className="text-primary m-0 flex min-h-full flex-col font-(--font-inter) antialiased">

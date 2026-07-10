@@ -1,9 +1,7 @@
-import {
-  HeroSection,
-  ProductSection,
-  CraftsmanshipGrid,
-  NavBar,
-} from "@/components/homepage";
+import CraftsmanshipGrid from "@/components/homepage/CraftsmanshipGrid";
+import HeroSection from "@/components/homepage/HeroSection";
+import NavBar from "@/components/homepage/NavBar";
+import ProductSection from "@/components/homepage/ProductSection";
 
 export default function Home() {
   return (

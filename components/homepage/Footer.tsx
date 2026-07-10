@@ -1,12 +1,12 @@
 import { Globe } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
+import Logo from "../Logo";
 
 const supportLinks = ["Shipping & Returns", "Privacy & Terms"];
 
 export default function Footer() {
   return (
-    <footer className="bg-background dark:bg-primary w-full border-t border-[rgba(138,121,104,0.2)]">
+    <footer className="bg-background dark:bg-primary z-50 w-full border-t border-[rgba(138,121,104,0.2)]">
       <div
         className="mx-auto grid max-w-360 grid-cols-2 gap-8 px-5 py-8 md:px-16"
         style={{ maxHeight: "400px" }}
@@ -17,14 +17,7 @@ export default function Footer() {
             href="#"
             className="block w-37.5 transition-opacity hover:opacity-80"
           >
-            <Image
-              src="/logo.svg"
-              alt="JACK THE JELLI"
-              className="h-auto w-full object-contain"
-              loading="eager"
-              width={140}
-              height={140}
-            />
+            <Logo />
           </Link>
           <p className="max-w-xs text-[16px] leading-[1.6] text-(--on-surface-variant)">
             Artisanal leather goods, crafted for the discerning few.
