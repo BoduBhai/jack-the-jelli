@@ -25,3 +25,18 @@ export interface Order {
   items?: OrderItem[]; // *TODO: remove optional when API is ready
   isError?: boolean; // *TODO: error state — marks rows with courier/payment issues
 }
+
+export type ProductStatus = "Draft" | "Published";
+
+export interface Product {
+  id: string;
+  name: string;
+  sku: string;
+  category: string;
+  price: number;
+  comparePrice?: number;
+  stock: number;
+  status: ProductStatus;
+  thumbnail?: string;
+  isError?: boolean;
+}
