@@ -17,7 +17,7 @@ import Logo from "@/components/layout/Logo";
 
 const navItems = [
   { label: "Sales Overview", href: "/admin", icon: LayoutDashboard },
-  { label: "Inventory Control", href: "/admin/inventory", icon: Package },
+  { label: "Products Control", href: "/admin/products", icon: Package },
   { label: "Logistics", href: "/admin/logistics", icon: Truck },
   { label: "Customers", href: "/admin/customers", icon: Users },
   { label: "Settings", href: "/admin/settings", icon: Settings },
@@ -43,6 +43,10 @@ function NavItems() {
         ) {
           longest = i.href;
         }
+      }
+      // /admin/products/* → Products Control
+      if (pathname.startsWith("/admin/products")) {
+        activeHref = "/admin/products";
       }
       if (longest) activeHref = longest;
     }

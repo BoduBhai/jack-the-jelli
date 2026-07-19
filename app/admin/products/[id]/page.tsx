@@ -1,21 +1,21 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Image from "next/image";
+import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Save, X, Trash2, Upload } from "lucide-react";
+import { ArrowLeft, Save, X, Camera } from "lucide-react";
 import { PRODUCTS } from "@/features/admin/lib/mock-products";
+import Image from "next/image";
 
 export default function EditProductPage() {
   const params = useParams();
@@ -31,7 +31,7 @@ export default function EditProductPage() {
           <p className="text-muted-foreground mt-2">
             No product matches <strong>{params.id}</strong>
           </p>
-          <Link href="/admin/inventory">
+          <Link href="/admin/products">
             <Button className="mt-6">Back to Inventory</Button>
           </Link>
         </div>
@@ -43,18 +43,24 @@ export default function EditProductPage() {
     <div className="flex min-h-screen flex-col">
       {/* Header */}
       <header className="border-border border-b px-4 py-6 md:px-16 md:py-8">
-        <div className="flex items-center justify-between">
-          <Link
-            href="/admin/inventory"
-            className="group text-muted-foreground hover:text-foreground flex items-center gap-2 transition-colors"
-          >
-            <ArrowLeft className="size-4" />
-            <span className="text-xs font-semibold tracking-widest uppercase">
-              Back to Inventory
-            </span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" className="rounded-none px-6 text-sm tracking-widest uppercase">
+        <Link
+          href="/admin/products"
+          className="group text-muted-foreground hover:text-foreground flex items-center gap-2 pb-4 transition-colors"
+        >
+          <ArrowLeft className="size-4" />
+          <span className="text-xs font-semibold tracking-widest uppercase">
+            Back to Inventory
+          </span>
+        </Link>
+        <div className="flex flex-col items-center gap-4 md:flex-row md:items-center md:justify-between">
+          <h1 className="text-2xl font-semibold tracking-widest uppercase sm:text-4xl">
+            {product.name}
+          </h1>
+          <div className="flex flex-col items-center gap-3 md:flex-row">
+            <Button
+              variant="destructive"
+              className="rounded-none px-8 py-6 text-sm tracking-widest uppercase"
+            >
               <X className="size-4" />
               Discard
             </Button>
@@ -67,147 +73,155 @@ export default function EditProductPage() {
       </header>
 
       {/* Content */}
-      <main className="flex-1">
-        <div className="mx-auto max-w-5xl px-4 py-12 md:px-16 md:py-16">
-          <div className="grid grid-cols-1 gap-12 lg:grid-cols-3">
-            {/* Left Column: Image + Details */}
-            <div className="space-y-8 lg:col-span-1">
-              {/* Image Upload */}
-              <div className="space-y-4">
-                <FieldLabel className="text-muted-foreground text-[10px] tracking-widest uppercase">
-                  Product Image
-                </FieldLabel>
-                <div className="relative size-full overflow-hidden rounded-none border border-border bg-accent aspect-square flex items-center justify-center">
-                  <Image
-                    src={product.thumbnail || "/image-placeholder.jpg"}
-                    alt={product.name}
-                    fill
-                    className="object-cover"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity">
-                    <Button
-                      variant="secondary"
-                      className="rounded-none px-4 py-2 text-xs tracking-widest uppercase"
-                    >
-                      <Upload className="size-3.5" />
-                      Replace
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Quick Stats */}
-              <div className="space-y-4">
-                <FieldLabel className="text-muted-foreground text-[10px] tracking-widest uppercase">
-                  Quick Stats
-                </FieldLabel>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between border-border border-b py-2">
-                    <span className="text-muted-foreground text-xs tracking-widest uppercase">SKU</span>
-                    <span className="text-foreground font-mono text-sm">{product.sku}</span>
-                  </div>
-                  <div className="flex items-center justify-between border-border border-b py-2">
-                    <span className="text-muted-foreground text-xs tracking-widest uppercase">Category</span>
-                    <span className="text-foreground text-sm">{product.category}</span>
-                  </div>
-                  <div className="flex items-center justify-between border-border border-b py-2">
-                    <span className="text-muted-foreground text-xs tracking-widest uppercase">Status</span>
-                    <span className="text-foreground text-sm">{product.status}</span>
-                  </div>
-                  <div className="flex items-center justify-between border-border border-b py-2">
-                    <span className="text-muted-foreground text-xs tracking-widest uppercase">Stock</span>
-                    <span className="text-foreground text-sm">{product.stock} units</span>
-                  </div>
-                </div>
-              </div>
+      <main className="flex justify-between gap-4">
+        {/* Product Media */}
+        <div className="border-border flex min-h-screen w-2/5 flex-col border-r">
+          <div className="sticky top-45 flex flex-col gap-12 p-6">
+            <div>
+              <h3 className="font-heading text-foreground text-2xl font-medium">
+                Product Media
+              </h3>
+              <p className="text-muted-foreground mt-1 text-sm">
+                High-fidelity imagery reflecting the quiet luxury aesthetic.
+              </p>
             </div>
-
-            {/* Right Column: Edit Form */}
-            <div className="space-y-8 lg:col-span-2">
-              {/* Basic Info */}
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <FieldLabel className="text-muted-foreground text-xs tracking-widest uppercase">
+            <div className="grid max-w-sm grid-cols-1 gap-6">
+              {/* As many images present */}
+              <div className="group bg-accent relative aspect-square w-full overflow-hidden">
+                <Image
+                  src={product.thumbnail || "/image-placeholder.jpg"}
+                  alt="Product Thumbnail"
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="bg-primary/20 absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
+                  <Button variant="secondary" className="rounded-none p-2">
+                    <X className="size-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="group bg-accent relative aspect-square w-full overflow-hidden">
+                <Image
+                  src={product.thumbnail || "/image-placeholder.jpg"}
+                  alt="Product Thumbnail"
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="bg-primary/20 absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
+                  <Button variant="secondary" className="rounded-none p-2">
+                    <X className="size-4" />
+                  </Button>
+                </div>
+              </div>
+              <button
+                type="button"
+                // onClick={() => setShowUploadModal(true)}
+                className="group border-border text-muted-foreground hover:border-foreground hover:text-foreground flex aspect-square w-full flex-col items-center justify-center gap-3 border-2 border-dashed transition-colors"
+              >
+                <div className="relative">
+                  <Camera className="size-8" />
+                  <span className="bg-foreground text-background absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-[8px]">
+                    +
+                  </span>
+                </div>
+                <span className="text-xs tracking-widest uppercase">
+                  Upload New
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+        {/* Product Details */}
+        <div className="min-h-screen w-3/5 overflow-y-auto bg-surface">
+          <div className="flex flex-col gap-32 max-w-2xl px-6 py-12 md:px-16">
+            {/* Basic Information Section */}
+            <section>
+              <h3 className="border-border mb-8 border-b pb-4 font-heading text-foreground text-2xl font-medium">
+                Basic Information
+              </h3>
+              <div className="flex flex-col gap-12">
+                {/* Product Name */}
+                <div>
+                  <Label
+                    htmlFor="product-name"
+                    className="text-muted-foreground mb-2 block text-xs font-semibold tracking-widest uppercase"
+                  >
                     Product Name
-                  </FieldLabel>
-                  <Input defaultValue={product.name} placeholder="Enter product name" />
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <FieldLabel className="text-muted-foreground text-xs tracking-widest uppercase">
-                      Price
-                    </FieldLabel>
-                    <Input
-                      type="number"
-                      defaultValue={product.price}
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <FieldLabel className="text-muted-foreground text-xs tracking-widest uppercase">
-                      Compare at Price
-                    </FieldLabel>
-                    <Input
-                      type="number"
-                      defaultValue={product.comparePrice ?? ""}
-                      placeholder="0.00"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <FieldLabel className="text-muted-foreground text-xs tracking-widest uppercase">
-                      Category
-                    </FieldLabel>
-                    <Select defaultValue={product.category.toLowerCase().replace(/ /g, "-")}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectItem value="leather-goods">Leather Goods</SelectItem>
-                          <SelectItem value="accessories">Accessories</SelectItem>
-                          <SelectItem value="ceramics">Ceramics</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <FieldLabel className="text-muted-foreground text-xs tracking-widest uppercase">
-                      Stock Quantity
-                    </FieldLabel>
-                    <Input
-                      type="number"
-                      defaultValue={product.stock}
-                      placeholder="0"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <FieldLabel className="text-muted-foreground text-xs tracking-widest uppercase">
-                    Description
-                  </FieldLabel>
-                  <textarea
-                    className="w-full min-h-[120px] rounded-none border border-border bg-transparent p-3 text-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                    placeholder="Describe the product..."
+                  </Label>
+                  <Input
+                    id="product-name"
+                    defaultValue={product.name}
+                    className="border-b border-t-0 border-l-0 border-r-0 rounded-none border-b-border h-12 py-3 text-lg"
                   />
                 </div>
-              </div>
 
-              {/* Actions */}
-              <div className="border-border border-t pt-6">
-                <Button
-                  variant="destructive"
-                  className="rounded-none px-6 text-sm tracking-widest uppercase"
-                >
-                  <Trash2 className="size-4" />
-                  Delete Product
-                </Button>
+                {/* SKU + Price */}
+                <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                  <div>
+                    <Label
+                      htmlFor="sku"
+                      className="text-muted-foreground mb-2 block text-xs font-semibold tracking-widest uppercase"
+                    >
+                      SKU
+                    </Label>
+                    <Input
+                      id="sku"
+                      defaultValue={product.sku}
+                      className="border-b border-t-0 border-l-0 border-r-0 rounded-none border-b-border h-12"
+                    />
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="price"
+                      className="text-muted-foreground mb-2 block text-xs font-semibold tracking-widest uppercase"
+                    >
+                      Price (USD)
+                    </Label>
+                    <Input
+                      id="price"
+                      type="text"
+                      defaultValue={product.price.toFixed(2)}
+                      className="border-b border-t-0 border-l-0 border-r-0 rounded-none border-b-border h-12"
+                    />
+                  </div>
+                </div>
+
+                {/* Category */}
+                <div>
+                  <Label
+                    htmlFor="category"
+                    className="text-muted-foreground mb-2 block text-xs font-semibold tracking-widest uppercase"
+                  >
+                    Category
+                  </Label>
+                  <Select defaultValue={product.category}>
+                    <SelectTrigger
+                      id="category"
+                      className="border-b border-t-0 border-l-0 rounded-none border-b-border h-12 justify-start rounded-r-none border-r-0"
+                    >
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Leather Goods">Leather Goods</SelectItem>
+                      <SelectItem value="Accessories">Accessories</SelectItem>
+                      <SelectItem value="Limited Editions">Limited Editions</SelectItem>
+                      <SelectItem value="Ceramics">Ceramics</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
+            </section>
+
+            {/* Product Description Section */}
+            <section>
+              <h3 className="border-border mb-8 border-b pb-4 font-heading text-foreground text-2xl font-medium">
+                Product Description
+              </h3>
+              <Textarea
+                placeholder="Enter product description..."
+                className="min-h-[200px] resize-y border-b border-t-0 border-l-0 rounded-none border-b-border text-base"
+              />
+            </section>
           </div>
         </div>
       </main>
