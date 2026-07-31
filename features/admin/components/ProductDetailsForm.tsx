@@ -9,11 +9,11 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { Product } from "@/features/admin/lib/types";
-
-const fieldLabelClassName =
-  "text-muted-foreground text-xs font-semibold tracking-widest uppercase";
-const underlineInputClassName =
-  "border-b-border h-12 rounded-none border-t-0 border-r-0 border-b border-l-0";
+import {
+  fieldLabelClassName,
+  PRODUCT_CATEGORIES,
+  underlineInputClassName,
+} from "@/features/admin/lib/product-form";
 
 interface ProductDetailsFormProps {
   product: Product;
@@ -86,12 +86,11 @@ export default function ProductDetailsForm({
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Leather Goods">Leather Goods</SelectItem>
-                <SelectItem value="Accessories">Accessories</SelectItem>
-                <SelectItem value="Limited Editions">
-                  Limited Editions
-                </SelectItem>
-                <SelectItem value="Ceramics">Ceramics</SelectItem>
+                {PRODUCT_CATEGORIES.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </Field>

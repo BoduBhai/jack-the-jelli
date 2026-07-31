@@ -57,11 +57,14 @@ export default function AdminInventory() {
           </h1>
         </div>
         <Button
+          asChild
           variant="default"
           className="rounded-none px-8 py-6 text-sm tracking-widest uppercase"
         >
-          <Plus className="size-4" />
-          Add Item
+          <Link href="/admin/products/new">
+            <Plus className="size-4" />
+            Add Item
+          </Link>
         </Button>
       </header>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
