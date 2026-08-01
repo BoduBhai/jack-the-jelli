@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { EB_Garamond, Inter } from "next/font/google";
 import "./globals.css";
 import ClientFooter from "@/components/layout/ClientFooter";
+import { Toaster } from "@/components/ui/sonner";
 
 const garamond = EB_Garamond({
   variable: "--font-garamond",
@@ -34,6 +35,7 @@ export default function RootLayout({
       <body className="text-primary m-0 flex min-h-full flex-col font-(--font-inter) antialiased">
         {children}
         <ClientFooter />
+        <Toaster />
       </body>
     </html>
   );

@@ -12,20 +12,23 @@ declare global {
   var _mongoosePromise: Promise<typeof mongoose> | null;
 }
 
-let cached = global._mongooseConn;
-let promise = global._mongoosePromise;
-
 export async function connectDB(): Promise<typeof mongoose> {
-  if (cached) return cached;
+  if (global._mongooseConn) return global._mongooseConn;
 
-  if (!promise) {
-    promise = mongoose.connect(MONGODB_URI, {
-      bufferCommands: false,
-    });
-    global._mongoosePromise = promise;
+  if (!global._mongoosePromise) {
+    global._mongoosePromise = mongoose
+      .connect(MONGODB_URI, { bufferCommands: false })
+      .catch((error) => {
+        // Never cache a failed attempt. The cache lives on `global` so it
+        // survives hot reloads — which means a rejected promise would be
+        // replayed to every later caller, reporting the original error long
+        // after the cause (paused cluster, dropped wifi) was fixed. Clearing it
+        // lets the next call genuinely retry.
+        global._mongoosePromise = null;
+        throw error;
+      });
   }
 
-  cached = await promise;
-  global._mongooseConn = cached;
-  return cached;
+  global._mongooseConn = await global._mongoosePromise;
+  return global._mongooseConn;
 }

@@ -12,9 +12,6 @@ export const underlineInputClassName =
 export const boxedInputClassName =
   "border-border bg-muted/50 focus-visible:bg-card focus-visible:border-foreground h-12 rounded-none border px-5 text-base transition-colors";
 
-export const PRODUCT_CATEGORIES = [
-  "Leather Goods",
-  "Accessories",
-  "Limited Editions",
-  "Ceramics",
-] as const;
+// Categories are admin-managed rows in MongoDB (D7), never a hardcoded list —
+// both product forms take them as a prop loaded server-side. See
+// features/admin/lib/categories.ts.

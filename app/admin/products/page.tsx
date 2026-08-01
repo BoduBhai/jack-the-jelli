@@ -1,16 +1,4 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
-import { Field } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -21,32 +9,45 @@ import {
 } from "@/components/ui/table";
 import Image from "next/image";
 import Link from "next/link";
-import { PRODUCTS } from "@/features/admin/lib/mock-products";
-import { Plus, Search, Pencil } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
+import ProductFilters from "@/features/admin/components/ProductFilters";
+import ProductPagination from "@/features/admin/components/ProductPagination";
+import StockIndicator from "@/features/admin/components/StockIndicator";
+import { getProducts } from "@/features/admin/lib/products";
+import type { StockStatus } from "@/features/admin/lib/stock";
 
-import { useMemo, useState } from "react";
+export const dynamic = "force-dynamic";
 
-export default function AdminInventory() {
-  const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 10;
+const STOCK_FILTERS: StockStatus[] = ["in-stock", "low-stock", "out-of-stock"];
 
-  // *TODO: server-side filter when API is ready — currently client-side
-  const filteredProducts = useMemo(
-    () =>
-      PRODUCTS.filter(
-        (o) =>
-          o.name.toLowerCase().includes(search.toLowerCase()) ||
-          o.sku.toLowerCase().includes(search.toLowerCase()),
-      ),
-    [search],
-  );
+interface AdminInventoryProps {
+  searchParams: Promise<{
+    q?: string;
+    stock?: string;
+    status?: string;
+    page?: string;
+  }>;
+}
 
-  // *TODO: pagination — slice data based on current page
-  const paginatedProducts = filteredProducts.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
-  );
+export default async function AdminInventory({
+  searchParams,
+}: AdminInventoryProps) {
+  const params = await searchParams;
+
+  // Anything unrecognised is dropped rather than passed to Mongo.
+  const stock = STOCK_FILTERS.find((value) => value === params.stock);
+  const status =
+    params.status === "Draft" || params.status === "Published"
+      ? params.status
+      : undefined;
+  const page = Number.parseInt(params.page ?? "1", 10);
+
+  const { products, total, page: currentPage, totalPages } = await getProducts({
+    q: params.q,
+    stock,
+    status,
+    page: Number.isFinite(page) ? page : 1,
+  });
 
   return (
     <div className="flex flex-col gap-12">
@@ -67,36 +68,9 @@ export default function AdminInventory() {
           </Link>
         </Button>
       </header>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        <Field
-          className="border-primary flex-1 border-b p-2"
-          orientation="horizontal"
-        >
-          <Input
-            className="focus-visible:border-input focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
-            value={search}
-            placeholder="Search by name, SKU..."
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <Search />
-        </Field>
 
-        <Field className="border-primary w-48 border-b p-2">
-          <Select defaultValue="all">
-            <SelectTrigger className="">
-              <SelectValue placeholder="Stock Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="in-stock">In Stock</SelectItem>
-                <SelectItem value="out-of-stock">Out of Stock</SelectItem>
-                <SelectItem value="low-stock">Low Stock</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </Field>
-      </div>
+      <ProductFilters />
+
       <div className="border-border bg-card flex-1 overflow-hidden border transition-shadow duration-500 hover:shadow-[0px_12px_32px_rgba(26,26,26,0.04)]">
         <Table className="min-w-200">
           <TableHeader>
@@ -106,92 +80,100 @@ export default function AdminInventory() {
               <TableHead>Category</TableHead>
               <TableHead>Price</TableHead>
               <TableHead>Stock Status</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="text-base">
-            {paginatedProducts.map((product) => {
-              const isError = product.isError;
-              return (
-                <TableRow
-                  key={product.id}
-                  className={
-                    isError
-                      ? "bg-destructive/10 hover:bg-destructive/20"
-                      : "hover:bg-muted"
-                  }
+            {products.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={7}
+                  className="text-muted-foreground py-16 text-center text-sm"
                 >
-                  <TableCell className="py-8">
-                    <div className="flex items-center gap-4">
-                      <div className="bg-accent relative size-16 shrink-0 overflow-hidden rounded-none">
-                        <Image
-                          src={product.thumbnail || "/image-placeholder.jpg"}
-                          alt={product.name}
-                          fill
-                          sizes="4rem"
-                          className="object-cover"
-                        />
-                      </div>
-                      <span className="font-heading text-foreground text-base">
-                        {product.name}
-                      </span>
+                  {total === 0 && !params.q && !stock && !status
+                    ? "No products yet. Use “Add Item” to create the first one."
+                    : "No products match these filters."}
+                </TableCell>
+              </TableRow>
+            )}
+
+            {products.map((product) => (
+              <TableRow key={product.id} className="hover:bg-muted">
+                <TableCell className="py-8">
+                  <div className="flex items-center gap-4">
+                    <div className="bg-accent relative size-16 shrink-0 overflow-hidden rounded-none">
+                      <Image
+                        src={product.thumbnail || "/image-placeholder.jpg"}
+                        alt={product.name}
+                        fill
+                        sizes="4rem"
+                        className="object-cover"
+                      />
                     </div>
-                  </TableCell>
-                  <TableCell className="py-8">
-                    <span className="text-foreground font-mono text-sm tracking-wide">
-                      {product.sku}
+                    <span className="font-heading text-foreground text-base">
+                      {product.name}
                     </span>
-                  </TableCell>
-                  <TableCell className="py-8">
-                    <span className="text-foreground text-sm">
-                      {product.category}
-                    </span>
-                  </TableCell>
-                  <TableCell className="py-8">
-                    <span className="text-foreground text-sm">
-                      ৳{" "}
-                      {product.price.toLocaleString("en-US", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </span>
-                  </TableCell>
-                  <TableCell className="py-8">
-                    {product.stock > 0 ? (
-                      product.stock <= 5 ? (
-                        <span className="flex items-center gap-2 text-sm font-medium text-red-600">
-                          <span className="size-1.5 rounded-full bg-red-600" />
-                          {product.stock} LOW STOCK
-                        </span>
-                      ) : (
-                        <span className="text-foreground flex items-center gap-2 text-sm font-medium">
-                          <span className="bg-foreground/40 size-1.5 rounded-full" />
-                          {product.stock} IN STOCK
-                        </span>
-                      )
-                    ) : (
-                      <span className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
-                        <span className="bg-muted-foreground/40 size-1.5 rounded-full" />
-                        OUT OF STOCK
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className="py-8 text-right">
+                  </div>
+                </TableCell>
+                <TableCell className="py-8">
+                  <span className="text-foreground font-mono text-sm tracking-wide">
+                    {product.sku}
+                  </span>
+                </TableCell>
+                <TableCell className="py-8">
+                  <span className="text-foreground text-sm">
+                    {product.categoryName}
+                  </span>
+                </TableCell>
+                <TableCell className="py-8">
+                  <span className="text-foreground text-sm">
+                    ৳{" "}
+                    {product.price.toLocaleString("en-US", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
+                </TableCell>
+                <TableCell className="py-8">
+                  <StockIndicator count={product.stock} />
+                </TableCell>
+                <TableCell className="py-8">
+                  <span
+                    className={
+                      product.status === "Published"
+                        ? "text-foreground text-xs font-semibold tracking-widest uppercase"
+                        : "text-muted-foreground border-border border px-2 py-1 text-xs font-semibold tracking-widest uppercase"
+                    }
+                  >
+                    {product.status}
+                  </span>
+                </TableCell>
+                <TableCell className="py-8 text-center">
+                  <Button
+                    asChild
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Edit ${product.name}`}
+                    className="text-muted-foreground hover:text-foreground rounded-none"
+                  >
                     <Link href={`/admin/products/${product.id}`}>
-                      <Button
-                        variant="ghost"
-                        className="text-muted-foreground hover:text-foreground rounded-none p-2"
-                      >
-                        <Pencil className="size-4" />
-                      </Button>
+                      <Pencil className="size-4" />
                     </Link>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>
+
+      <ProductPagination
+        page={currentPage}
+        totalPages={totalPages}
+        total={total}
+        params={{ q: params.q, stock: params.stock, status: params.status }}
+      />
     </div>
   );
 }

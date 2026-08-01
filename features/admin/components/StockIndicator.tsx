@@ -1,31 +1,33 @@
+import { getStockStatus, type StockStatus } from "@/features/admin/lib/stock";
+
 interface StockIndicatorProps {
   count: number;
 }
 
-const STOCK_CONFIG: Record<string, { color: string; label: string }> = {
-  good: { color: "#8A7968", label: "" }, // Secondary (taupe)
-  low: { color: "#BA1A1A", label: "" }, // Error (red)
-  out: { color: "#747878", label: "" }, // Outline
+// "How low is low" lives in features/admin/lib/stock.ts (D3b) — never inline here.
+const STOCK_STYLES: Record<StockStatus, { dot: string; text: string }> = {
+  "out-of-stock": {
+    dot: "bg-muted-foreground/40",
+    text: "text-muted-foreground",
+  },
+  "low-stock": { dot: "bg-red-600", text: "text-red-600" },
+  "in-stock": { dot: "bg-foreground/40", text: "text-foreground" },
 };
 
 export default function StockIndicator({ count }: StockIndicatorProps) {
-  const config =
-    count === 0
-      ? { color: "var(--outline)", label: "Out of Stock" }
-      : count <= 5
-        ? { color: "var(--error)", label: `${count} Low Stock` }
-        : { color: "var(--secondary)", label: `${count} In Stock` };
+  const status = getStockStatus(count);
+  const style = STOCK_STYLES[status];
+  const label =
+    status === "out-of-stock"
+      ? "OUT OF STOCK"
+      : `${count} ${status === "low-stock" ? "LOW STOCK" : "IN STOCK"}`;
 
   return (
     <span
-      className="font-label-caps text-label-caps flex items-center gap-1.5"
-      style={{ color: config.color }}
+      className={`flex items-center gap-2 text-sm font-medium ${style.text}`}
     >
-      <span
-        className="inline-block size-1.5 rounded-full"
-        style={{ backgroundColor: config.color }}
-      />
-      {config.label}
+      <span className={`size-1.5 rounded-full ${style.dot}`} />
+      {label}
     </span>
   );
 }
