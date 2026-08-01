@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import { escapeRegex, slugify } from "@/lib/slug";
 
-export const PRODUCT_STATUSES = ["Draft", "Published"] as const;
+export const PRODUCT_STATUSES = ["Draft", "Published", "Archived"] as const;
 export type ProductStatus = (typeof PRODUCT_STATUSES)[number];
 
 export interface IProductImage {

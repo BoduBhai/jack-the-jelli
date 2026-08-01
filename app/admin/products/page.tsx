@@ -10,6 +10,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { Plus, Pencil } from "lucide-react";
+import ArchiveProductButton from "@/features/admin/components/ArchiveProductButton";
 import ProductFilters from "@/features/admin/components/ProductFilters";
 import ProductPagination from "@/features/admin/components/ProductPagination";
 import StockIndicator from "@/features/admin/components/StockIndicator";
@@ -37,7 +38,9 @@ export default async function AdminInventory({
   // Anything unrecognised is dropped rather than passed to Mongo.
   const stock = STOCK_FILTERS.find((value) => value === params.stock);
   const status =
-    params.status === "Draft" || params.status === "Published"
+    params.status === "Draft" ||
+    params.status === "Published" ||
+    params.status === "Archived"
       ? params.status
       : undefined;
   const page = Number.parseInt(params.page ?? "1", 10);
@@ -143,24 +146,33 @@ export default async function AdminInventory({
                     className={
                       product.status === "Published"
                         ? "text-foreground text-xs font-semibold tracking-widest uppercase"
-                        : "text-muted-foreground border-border border px-2 py-1 text-xs font-semibold tracking-widest uppercase"
+                        : product.status === "Archived"
+                          ? "text-muted-foreground/60 border-border border border-dashed px-2 py-1 text-xs font-semibold tracking-widest uppercase line-through"
+                          : "text-muted-foreground border-border border px-2 py-1 text-xs font-semibold tracking-widest uppercase"
                     }
                   >
                     {product.status}
                   </span>
                 </TableCell>
-                <TableCell className="py-8 text-center">
-                  <Button
-                    asChild
-                    variant="ghost"
-                    size="icon"
-                    aria-label={`Edit ${product.name}`}
-                    className="text-muted-foreground hover:text-foreground rounded-none"
-                  >
-                    <Link href={`/admin/products/${product.id}`}>
-                      <Pencil className="size-4" />
-                    </Link>
-                  </Button>
+                <TableCell className="py-8">
+                  <div className="flex items-center justify-center gap-1">
+                    <Button
+                      asChild
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Edit ${product.name}`}
+                      className="text-muted-foreground hover:text-foreground rounded-none"
+                    >
+                      <Link href={`/admin/products/${product.id}`}>
+                        <Pencil className="size-4" />
+                      </Link>
+                    </Button>
+                    <ArchiveProductButton
+                      productId={product.id}
+                      productName={product.name}
+                      status={product.status}
+                    />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

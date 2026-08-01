@@ -112,6 +112,7 @@ export default function ProductFilters() {
               <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="Published">Published</SelectItem>
               <SelectItem value="Draft">Draft</SelectItem>
+              <SelectItem value="Archived">Archived</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>

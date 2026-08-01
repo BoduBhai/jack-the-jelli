@@ -1,9 +1,27 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import Link from "next/link";
-import { useActionState, useRef } from "react";
-import { ArrowLeft, Check, FileText } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useActionState, useRef, useState, useTransition } from "react";
+import {
+  ArrowLeft,
+  Check,
+  FileText,
+  Loader2,
+  RotateCcw,
+  Trash2,
+} from "lucide-react";
 import type { CategoryOption } from "@/features/admin/lib/category-schema";
 import type { ProductDTO } from "@/features/admin/lib/types";
 import { useDirtyGuard } from "@/features/admin/hooks/useDirtyGuard";
@@ -13,7 +31,11 @@ import ProductMediaUploader, {
   type ProductMediaUploaderHandle,
 } from "@/features/admin/components/ProductMediaUploader";
 import { emptyFormState } from "@/features/admin/lib/form-state";
-import { updateProduct } from "@/features/admin/lib/product-actions";
+import {
+  archiveProduct,
+  restoreProduct,
+  updateProduct,
+} from "@/features/admin/lib/product-actions";
 import { updateProductSchema } from "@/features/admin/lib/product-schema";
 
 interface ProductEditorProps {
@@ -43,6 +65,35 @@ export default function ProductEditor({
   });
 
   const isSubmitBlocked = isPending || isUploading;
+
+  const router = useRouter();
+  const isArchived = product.status === "Archived";
+  const [isArchivePending, startArchiveTransition] = useTransition();
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
+
+  // Dispatched imperatively (not a nested <form>) because this button lives
+  // inside the outer product <form> — a nested form would bubble its submit
+  // into the parent, same reasoning as CategoryManagerDialog's delete button.
+  const handleArchive = () => {
+    startArchiveTransition(async () => {
+      const body = new FormData();
+      body.append("id", product.id);
+      const result = await archiveProduct(emptyFormState, body);
+      if (result.ok) {
+        setArchiveDialogOpen(false);
+        router.push("/admin/products");
+      }
+    });
+  };
+
+  const handleRestore = () => {
+    startArchiveTransition(async () => {
+      const body = new FormData();
+      body.append("id", product.id);
+      const result = await restoreProduct(emptyFormState, body);
+      if (result.ok) router.refresh();
+    });
+  };
 
   return (
     <form
@@ -82,6 +133,74 @@ export default function ProductEditor({
             >
               <Link href="/admin/products">Cancel</Link>
             </Button>
+            {/* Soft-delete only — see product-actions.ts. Archiving hides the
+                product from the default admin list; it never removes the row. */}
+            {isArchived ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleRestore}
+                disabled={isArchivePending}
+                className="rounded-none px-8 py-6 text-sm tracking-widest uppercase"
+              >
+                {isArchivePending ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <RotateCcw className="size-4" />
+                )}
+                Restore to Draft
+              </Button>
+            ) : (
+              <Dialog
+                open={archiveDialogOpen}
+                onOpenChange={setArchiveDialogOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-destructive/40 text-destructive hover:bg-destructive rounded-none px-8 py-6 text-sm tracking-widest uppercase hover:text-white"
+                  >
+                    <Trash2 className="size-4" />
+                    Archive
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="rounded-none sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Archive this product?</DialogTitle>
+                    <DialogDescription>
+                      “{product.name}” will disappear from the default inventory
+                      list and the storefront, but nothing is deleted — it can
+                      be restored at any time.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <DialogClose asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="rounded-none text-xs tracking-widest uppercase"
+                      >
+                        Cancel
+                      </Button>
+                    </DialogClose>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      onClick={handleArchive}
+                      disabled={isArchivePending}
+                      className="rounded-none text-xs tracking-widest uppercase"
+                    >
+                      {isArchivePending ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        "Confirm Archive"
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
             {/* Same intent switch as the create form (D4) — this is how a
                 draft gets published, and how a live product gets pulled. */}
             <Button

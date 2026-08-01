@@ -103,6 +103,11 @@ export const updateProductSchema = createProductSchema.extend({
   id: z.string().trim().regex(OBJECT_ID_PATTERN, "Unknown product"),
 });
 
+/** Shared by archiveProduct/restoreProduct — status-only mutations need no other field. */
+export const productIdSchema = z.object({
+  id: z.string().trim().regex(OBJECT_ID_PATTERN, "Unknown product"),
+});
+
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 

@@ -58,7 +58,7 @@ function stockFilter(stock: StockStatus): QueryFilter<IProduct> {
 export interface ProductQuery {
   q?: string;
   stock?: StockStatus;
-  status?: "Draft" | "Published";
+  status?: "Draft" | "Published" | "Archived";
   page?: number;
 }
 
@@ -86,7 +86,10 @@ export async function getProducts({
     filter.$or = [{ name: pattern }, { sku: pattern }];
   }
   if (stock) Object.assign(filter, stockFilter(stock));
-  if (status) filter.status = status;
+  // Archived products are hidden from the default (unfiltered) list — that's
+  // the whole point of archiving instead of a hard delete — but still fully
+  // queryable by explicitly selecting the Archived filter.
+  filter.status = status ?? { $ne: "Archived" };
 
   const total = await Product.countDocuments(filter);
   const totalPages = Math.max(1, Math.ceil(total / PRODUCTS_PER_PAGE));

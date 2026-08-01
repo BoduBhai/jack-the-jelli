@@ -17,6 +17,7 @@ import {
   createProductSchema,
   OBJECT_ID_PATTERN,
   PRODUCT_VALUE_FIELDS,
+  productIdSchema,
   readProductFormData,
   updateProductSchema,
 } from "@/features/admin/lib/product-schema";
@@ -298,4 +299,74 @@ export async function updateProduct(
   revalidatePath("/admin/products");
   revalidatePath(`/admin/products/${id}`);
   redirect("/admin/products");
+}
+
+/**
+ * Soft-delete: hides a product from the default admin list and (once built)
+ * the storefront, without removing the row. A hard delete would leave any
+ * order that references this product's id dangling, so this is the only
+ * removal path — nothing here needs an order-count guard, because nothing is
+ * actually deleted.
+ */
+export async function archiveProduct(
+  _prevState: AdminFormState,
+  formData: FormData,
+): Promise<AdminFormState> {
+  await requireAdmin();
+
+  const parsed = productIdSchema.safeParse({ id: formData.get("id") });
+  if (!parsed.success) {
+    return { ok: false, message: "That product no longer exists." };
+  }
+
+  try {
+    await connectDB();
+    const archived = await Product.findByIdAndUpdate(parsed.data.id, {
+      status: "Archived",
+    });
+    if (!archived) {
+      return { ok: false, message: "That product no longer exists." };
+    }
+  } catch (error) {
+    console.error("archiveProduct failed", error);
+    return { ok: false, message: "Something went wrong while archiving this product." };
+  }
+
+  revalidatePath("/admin/products");
+  revalidatePath(`/admin/products/${parsed.data.id}`);
+  return { ok: true, message: "Product archived." };
+}
+
+/**
+ * Restores an archived product to Draft — not Published. Bringing a product
+ * back into view shouldn't also put it live for sale; the admin publishes
+ * deliberately, same as the create/edit intent switch.
+ */
+export async function restoreProduct(
+  _prevState: AdminFormState,
+  formData: FormData,
+): Promise<AdminFormState> {
+  await requireAdmin();
+
+  const parsed = productIdSchema.safeParse({ id: formData.get("id") });
+  if (!parsed.success) {
+    return { ok: false, message: "That product no longer exists." };
+  }
+
+  try {
+    await connectDB();
+    const restored = await Product.findByIdAndUpdate(parsed.data.id, {
+      status: "Draft",
+    });
+    if (!restored) {
+      return { ok: false, message: "That product no longer exists." };
+    }
+  } catch (error) {
+    console.error("restoreProduct failed", error);
+    return { ok: false, message: "Something went wrong while restoring this product." };
+  }
+
+  revalidatePath("/admin/products");
+  revalidatePath(`/admin/products/${parsed.data.id}`);
+  return { ok: true, message: "Product restored to Draft." };
 }
