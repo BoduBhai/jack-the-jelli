@@ -25,3 +25,33 @@ export interface Order {
   items?: OrderItem[]; // *TODO: remove optional when API is ready
   isError?: boolean; // *TODO: error state — marks rows with courier/payment issues
 }
+
+// Type-only import/re-export: erased at compile time, so client components
+// importing from here never pull Mongoose into the bundle.
+import type { IProductImage, ProductStatus } from "@/models/Product";
+
+export type { IProductImage, ProductStatus };
+
+/**
+ * Serializable product for client components. Mongoose documents don't survive
+ * the server/client boundary (§6.3) — `_id` and `Date` both break — so every
+ * query maps through `toProductDTO` in features/admin/lib/products.ts.
+ */
+export interface ProductDTO {
+  id: string;
+  name: string;
+  slug: string;
+  sku: string;
+  /** ObjectId string — what the category <Select> submits. */
+  categoryId: string;
+  /** Resolved via populate, for display. */
+  categoryName: string;
+  price: number;
+  description?: string;
+  stock: number;
+  status: ProductStatus;
+  thumbnail?: string;
+  images: IProductImage[];
+  createdAt: string;
+  updatedAt: string;
+}

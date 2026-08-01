@@ -17,7 +17,7 @@ import Logo from "@/components/layout/Logo";
 
 const navItems = [
   { label: "Sales Overview", href: "/admin", icon: LayoutDashboard },
-  { label: "Inventory Control", href: "/admin/inventory", icon: Package },
+  { label: "Products Control", href: "/admin/products", icon: Package },
   { label: "Logistics", href: "/admin/logistics", icon: Truck },
   { label: "Customers", href: "/admin/customers", icon: Users },
   { label: "Settings", href: "/admin/settings", icon: Settings },
@@ -43,6 +43,10 @@ function NavItems() {
         ) {
           longest = i.href;
         }
+      }
+      // /admin/products/* → Products Control
+      if (pathname.startsWith("/admin/products")) {
+        activeHref = "/admin/products";
       }
       if (longest) activeHref = longest;
     }
@@ -105,6 +109,16 @@ export default function AdminSidebar() {
         <Logo priority />
 
         <NavItems />
+
+        <div className="px-4 pb-8">
+          <Button
+            asChild
+            variant="outline"
+            className="border-primary text-primary hover:bg-primary hover:text-primary-foreground w-full justify-center rounded-none border px-4 py-5 text-[11px] font-(--font-inter) tracking-[0.18em] uppercase transition-colors"
+          >
+            <Link href="/">View Storefront</Link>
+          </Button>
+        </div>
       </nav>
     </>
   );

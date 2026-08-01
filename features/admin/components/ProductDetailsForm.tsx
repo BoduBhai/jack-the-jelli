@@ -1,0 +1,135 @@
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import CategorySelect from "@/features/admin/components/CategorySelect";
+import type { CategoryOption } from "@/features/admin/lib/category-schema";
+import type { ProductDTO } from "@/features/admin/lib/types";
+import {
+  fieldLabelClassName,
+  underlineInputClassName,
+} from "@/features/admin/lib/product-form";
+
+interface ProductDetailsFormProps {
+  product: ProductDTO;
+  /** Loaded from the database server-side (D7). */
+  categories: CategoryOption[];
+  errors?: Record<string, string>;
+  /** Raw submitted strings echoed back after a failed save. */
+  values?: Record<string, string>;
+  onDirty: () => void;
+}
+
+/**
+ * The fields of the edit page. Deliberately NOT a <form> — ProductEditor owns
+ * the form element so the media uploader's hidden `images` input and the
+ * Draft/Publish submit buttons all post together.
+ */
+export default function ProductDetailsForm({
+  product,
+  categories,
+  errors,
+  values,
+  onDirty,
+}: ProductDetailsFormProps) {
+  return (
+    <div className="flex flex-col gap-12 sm:gap-20 md:gap-32">
+      <section>
+        <h3 className="border-border font-heading text-foreground mb-8 border-b pb-4 text-2xl font-medium">
+          Basic Information
+        </h3>
+        <div className="flex flex-col gap-12">
+          <Field data-invalid={Boolean(errors?.name) || undefined}>
+            <FieldLabel htmlFor="product-name" className={fieldLabelClassName}>
+              Product Name
+            </FieldLabel>
+            <Input
+              id="product-name"
+              name="name"
+              defaultValue={values?.name ?? product.name}
+              aria-invalid={Boolean(errors?.name)}
+              className={`${underlineInputClassName} py-3 text-lg`}
+            />
+            <FieldError>{errors?.name}</FieldError>
+          </Field>
+
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+            <Field data-invalid={Boolean(errors?.sku) || undefined}>
+              <FieldLabel htmlFor="sku" className={fieldLabelClassName}>
+                SKU
+              </FieldLabel>
+              <Input
+                id="sku"
+                name="sku"
+                defaultValue={values?.sku ?? product.sku}
+                aria-invalid={Boolean(errors?.sku)}
+                className={underlineInputClassName}
+                maxLength={16}
+                placeholder="e.g. JTJ-BIF-001"
+              />
+              <FieldError>{errors?.sku}</FieldError>
+            </Field>
+            <Field data-invalid={Boolean(errors?.price) || undefined}>
+              <FieldLabel htmlFor="price" className={fieldLabelClassName}>
+                Price (BDT)
+              </FieldLabel>
+              <Input
+                id="price"
+                name="price"
+                type="text"
+                inputMode="decimal"
+                defaultValue={values?.price ?? String(product.price)}
+                aria-invalid={Boolean(errors?.price)}
+                className={underlineInputClassName}
+                pattern="^\d+(\.\d{1,2})?$"
+                placeholder="0.00"
+              />
+              <FieldError>{errors?.price}</FieldError>
+            </Field>
+          </div>
+
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+            <CategorySelect
+              categories={categories}
+              defaultValue={values?.category ?? product.categoryId}
+              error={errors?.category}
+              triggerClassName="border-b-border h-12 rounded-none border-t-0 border-r-0 border-b border-l-0"
+              onDirty={onDirty}
+            />
+            <Field data-invalid={Boolean(errors?.stock) || undefined}>
+              <FieldLabel htmlFor="stock" className={fieldLabelClassName}>
+                Current Stock
+              </FieldLabel>
+              <Input
+                id="stock"
+                name="stock"
+                type="number"
+                min={0}
+                defaultValue={values?.stock ?? String(product.stock)}
+                aria-invalid={Boolean(errors?.stock)}
+                className={underlineInputClassName}
+              />
+              <FieldError>{errors?.stock}</FieldError>
+            </Field>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h3 className="border-border font-heading text-foreground mb-8 border-b pb-4 text-2xl font-medium">
+          Product Description
+        </h3>
+        <Field data-invalid={Boolean(errors?.description) || undefined}>
+          <Textarea
+            id="description"
+            name="description"
+            defaultValue={values?.description ?? product.description ?? ""}
+            aria-invalid={Boolean(errors?.description)}
+            placeholder="Describe the product story, materials, care instructions..."
+            className="border-b-border min-h-50 resize-y rounded-none border-t-0 border-b border-l-0 text-base"
+          />
+          <FieldError>{errors?.description}</FieldError>
+        </Field>
+      </section>
+    </div>
+  );
+}

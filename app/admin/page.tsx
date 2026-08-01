@@ -18,6 +18,7 @@ import Link from "next/link";
 import { ORDERS } from "@/features/admin/lib/mock-data";
 import FulfillmentBadge from "@/features/admin/components/FulfillmentBadge";
 
+// *TODO: Use select dropdown instead of tabs
 // *TODO: pagination — wire to real pagination logic when API is ready
 const ITEMS_PER_PAGE = 4;
 
@@ -71,7 +72,7 @@ export default function AdminPage() {
           orientation="horizontal"
         >
           <Input
-            className="focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="focus-visible:border-input focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
             value={search}
             placeholder="Search by ID or customer..."
             onChange={(e) => setSearch(e.target.value)}
