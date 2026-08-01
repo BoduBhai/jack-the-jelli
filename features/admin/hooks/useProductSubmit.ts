@@ -120,7 +120,18 @@ export function useProductSubmit({
 
       // Then the checks only the database can answer — a taken SKU, a deleted
       // category — still before anything is uploaded.
-      const preflight = await validateProductDraft(formData);
+      let preflight: AdminFormState;
+      try {
+        preflight = await validateProductDraft(formData);
+      } catch (error) {
+        setIsUploading(false);
+        toastIdRef.current = undefined;
+        toast.error(
+          error instanceof Error ? error.message : "Could not save this product.",
+          { id: toastId },
+        );
+        return;
+      }
       if (!preflight.ok) {
         setIsUploading(false);
         setClientErrors(preflight.errors);
