@@ -19,7 +19,9 @@ export default function HeroSection() {
           fill
           sizes="100vw"
           className="origin-center scale-105 object-cover transition-transform duration-[10s] ease-out hover:scale-100"
-          priority
+          // priority is deprecated in Next 16 — see ProductGallery.tsx.
+          loading="eager"
+          fetchPriority="high"
           unoptimized
         />
       </div>

@@ -33,6 +33,16 @@ export default function ProductDetailView({
 
   return (
     <div className="mx-auto max-w-360 px-5 pt-32 pb-32 md:px-16 md:pt-40">
+      {/* Above the gallery on every breakpoint — kept out of the sticky panel
+          so it doesn't fall below the image when the columns stack on mobile. */}
+      <Link
+        href="/collection"
+        className="text-on-surface-variant hover:text-foreground mb-8 inline-flex w-fit items-center gap-2 text-[12px] font-semibold tracking-[0.1em] uppercase transition-colors duration-300"
+      >
+        <ArrowLeft className="size-4" aria-hidden="true" />
+        The Collections
+      </Link>
+
       <div className="flex flex-col gap-10 lg:flex-row lg:gap-12">
         <div className="w-full lg:w-3/5">
           <ProductGallery images={images} alt={product.name} />
@@ -40,15 +50,7 @@ export default function ProductDetailView({
 
         <div className="w-full lg:w-2/5">
           <div className="flex flex-col lg:sticky lg:top-32">
-            <Link
-              href="/collection"
-              className="text-on-surface-variant hover:text-foreground inline-flex w-fit items-center gap-2 text-[12px] font-semibold tracking-[0.1em] uppercase transition-colors duration-300"
-            >
-              <ArrowLeft className="size-4" aria-hidden="true" />
-              The Collections
-            </Link>
-
-            <p className="text-on-surface-variant mt-10 text-[12px] font-semibold tracking-[0.1em] uppercase">
+            <p className="text-on-surface-variant text-[12px] font-semibold tracking-[0.1em] uppercase">
               {product.category}
             </p>
             <h1 className="text-foreground mt-2 font-serif text-[40px] leading-[1.2] tracking-tight md:text-[56px] md:leading-[1.1]">

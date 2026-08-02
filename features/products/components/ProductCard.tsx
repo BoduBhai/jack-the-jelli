@@ -21,7 +21,9 @@ export default function ProductCard({
             src={product.thumbnail || "/image-placeholder.jpg"}
             alt={product.name}
             fill
-            priority={priority}
+            // priority is deprecated in Next 16 — see ProductGallery.tsx.
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
             sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
             className="object-cover transition-transform duration-700 group-hover:scale-105"
           />
