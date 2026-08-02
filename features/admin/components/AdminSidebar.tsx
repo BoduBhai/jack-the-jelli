@@ -77,6 +77,21 @@ function NavItems() {
   );
 }
 
+// Shared "View Storefront" link — used by both desktop sidebar and mobile drawer
+function ViewStorefrontButton() {
+  return (
+    <div className="px-4 pb-8">
+      <Button
+        asChild
+        variant="outline"
+        className="border-primary text-primary hover:bg-primary hover:text-primary-foreground w-full justify-center rounded-none border px-4 py-5 text-[11px] font-(--font-inter) tracking-[0.18em] uppercase transition-colors"
+      >
+        <Link href="/">View Storefront</Link>
+      </Button>
+    </div>
+  );
+}
+
 export default function AdminSidebar() {
   return (
     <>
@@ -95,32 +110,26 @@ export default function AdminSidebar() {
           className="border-outline-variant/20 w-60 rounded-none border-r p-0"
         >
           {/* Mobile drawer header */}
-          <div className="w-44 px-6 py-8">
+          <div className="mx-auto mt-12 w-32">
             <Logo />
           </div>
 
           {/* Mobile nav items */}
           <NavItems />
+
+          <ViewStorefrontButton />
         </SheetContent>
       </Sheet>
 
       {/* ── Desktop sidebar (hidden on mobile) ───────────────── */}
       <nav className="bg-surface-container-low border-outline-variant/20 fixed top-0 left-0 z-40 hidden h-screen w-64 flex-col gap-8 border-r py-2 md:flex">
-        <div className="w-40 px-4 pt-4">
+        <div className="mx-auto mt-12 w-32">
           <Logo priority />
         </div>
 
         <NavItems />
 
-        <div className="px-4 pb-8">
-          <Button
-            asChild
-            variant="outline"
-            className="border-primary text-primary hover:bg-primary hover:text-primary-foreground w-full justify-center rounded-none border px-4 py-5 text-[11px] font-(--font-inter) tracking-[0.18em] uppercase transition-colors"
-          >
-            <Link href="/">View Storefront</Link>
-          </Button>
-        </div>
+        <ViewStorefrontButton />
       </nav>
     </>
   );

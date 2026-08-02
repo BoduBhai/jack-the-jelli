@@ -78,8 +78,8 @@ export default function ProductSection() {
             </div>
 
             <Link
-              href="#"
-              className="text-foreground border-foreground inline-flex w-fit items-center gap-2 border-b pb-1 text-[12px] font-semibold tracking-widest uppercase transition-colors duration-300 hover:border-(--on-surface-variant) hover:text-(--on-surface-variant)"
+              href="/collection?category=6a6dfc76b142f0e85a184a22"
+              className="text-foreground border-foreground hover:border-on-surface-variant hover:text-on-surface-variant inline-flex w-fit items-center gap-2 border-b pb-1 text-[12px] font-semibold tracking-widest uppercase transition-colors duration-300"
             >
               Discover Flame
               <ArrowRight className="h-4 w-4" />
@@ -87,7 +87,7 @@ export default function ProductSection() {
           </div>
 
           <div className="order-1 md:order-2 md:col-span-5 md:col-start-8">
-            <div className="group will-change-opacity relative aspect-4/5 overflow-hidden border border-[rgba(138,121,104,0.2)] bg-(--surface-container) will-change-transform">
+            <div className="group will-change-opacity bg-surface-container relative aspect-4/5 overflow-hidden border border-[rgba(138,121,104,0.2)] will-change-transform">
               {flameImage ? (
                 <Image
                   src={flameImage}
@@ -98,7 +98,7 @@ export default function ProductSection() {
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center text-sm text-(--on-surface-variant)">
+                <div className="text-on-surface-variant absolute inset-0 flex items-center justify-center text-sm">
                   Image placeholder
                 </div>
               )}
@@ -108,7 +108,7 @@ export default function ProductSection() {
       </section>
 
       {/* --- Regular Wallet --- */}
-      <section className="w-full bg-(--surface-container-low) py-32">
+      <section className="bg-surface-container-low w-full py-32">
         <div className="mx-auto max-w-360 px-5 text-center md:px-16">
           {/* ENTRY 1 */}
           <div
@@ -119,7 +119,7 @@ export default function ProductSection() {
                 : "translate-y-10 opacity-0"
             }`}
           >
-            <span className="mb-4 block text-[12px] font-semibold tracking-widest text-(--on-surface-variant) uppercase">
+            <span className="text-on-surface-variant mb-4 block text-[12px] font-semibold tracking-widest uppercase">
               02 / Classic
             </span>
           </div>
@@ -138,7 +138,7 @@ export default function ProductSection() {
             </h2>
           </div>
 
-          <div className="group will-change-opacity relative mx-auto aspect-video w-full max-w-5xl overflow-hidden border border-[rgba(138,121,104,0.2)] bg-(--surface-container) will-change-transform md:aspect-21/9">
+          <div className="group will-change-opacity bg-surface-container relative mx-auto aspect-video w-full max-w-5xl overflow-hidden border border-[rgba(138,121,104,0.2)] will-change-transform md:aspect-21/9">
             {regularImage ? (
               <Image
                 src={regularImage}
@@ -149,7 +149,7 @@ export default function ProductSection() {
                 className="bg-no-repeat object-cover transition-transform duration-1000 group-hover:scale-105"
               />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-sm text-(--on-surface-variant)">
+              <div className="text-on-surface-variant absolute inset-0 flex items-center justify-center text-sm">
                 Image placeholder
               </div>
             )}
@@ -165,14 +165,14 @@ export default function ProductSection() {
                   : "translate-y-10 opacity-0"
               }`}
             >
-              <p className="mx-auto mb-8 max-w-2xl text-[18px] leading-[1.6] text-(--on-surface-variant)">
+              <p className="text-on-surface-variant mx-auto mb-8 max-w-2xl text-[18px] leading-[1.6]">
                 Clean lines, no embellishment. A timeless bifold in full-grain
                 leather for those who prefer understated elegance.
               </p>
             </div>
 
             <Link
-              href="#"
+              href="/collection?category=6a6dfc7db142f0e85a184a23"
               className="border-foreground text-foreground hover:bg-foreground hover:text-background inline-flex items-center justify-center rounded-none border bg-transparent px-10 py-4 text-[12px] font-semibold tracking-widest uppercase transition-colors duration-300"
             >
               View Classic

@@ -4,12 +4,6 @@ import Image from "next/image";
 import { useInView } from "@/lib/hooks/useInView";
 import Link from "next/link";
 
-// TODO: Remove this once we have a proper image service
-
-const heroImages = [
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuARMGujTktlu3ROV4FR2VKopFBVYoQ9OkRtDLdDwjYJxpweMmL7rQlepJ73nwljLGW_lJg4RkN7hcBUBcribP0uocs9BClmmhcF2N5HrBFluELb334X44AXWVpH5JJ5ZTwprA5qcSRe5fSLW3CjzRQ5eUJsjllPxmMpC04rl1JKdCG_efWyobsXBFC8KYDzp3vMMXdqutoAwQwnrMUEbxk_Cl0VoXj_5-AsiGRh1l75buHVSYqGeWhuZdjkWrcwms8uEbHXdH5t3K9n",
-];
-
 export default function HeroSection() {
   const { ref: ref1, isVisible: vis1 } = useInView({}, "-50px");
   const { ref: ref2, isVisible: vis2 } = useInView({}, "-50px");

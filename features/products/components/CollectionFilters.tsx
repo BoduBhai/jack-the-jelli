@@ -2,7 +2,7 @@
 
 import { useState, useTransition, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -64,6 +64,11 @@ export default function CollectionFilters({
     setParam("q", search.trim());
   };
 
+  const clearSearch = () => {
+    setSearch("");
+    setParam("q", "");
+  };
+
   return (
     <div
       className="flex flex-col gap-6 border-y border-[rgba(138,121,104,0.2)] py-6 sm:flex-row sm:items-center sm:justify-between"
@@ -86,8 +91,18 @@ export default function CollectionFilters({
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search collection..."
           aria-label="Search collection"
-          className="h-auto rounded-none border-0 border-b border-secondary bg-transparent py-1.5 pr-0 pl-6 text-[16px] shadow-none focus-visible:ring-0"
+          className="h-auto rounded-none border-0 border-b border-secondary bg-transparent py-1.5 pr-6 pl-6 text-[16px] shadow-none focus-visible:ring-0"
         />
+        {search && (
+          <button
+            type="button"
+            onClick={clearSearch}
+            aria-label="Clear search"
+            className="absolute top-1/2 right-0 -translate-y-1/2"
+          >
+            <X className="text-on-surface-variant h-4 w-4" />
+          </button>
+        )}
       </form>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
