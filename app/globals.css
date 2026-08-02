@@ -171,3 +171,12 @@
     @apply font-sans;
   }
 }
+
+/* Skeleton is a shared primitive (components/ui/skeleton.tsx) whose
+   animate-pulse doesn't respect prefers-reduced-motion on its own, and it's
+   used in places a motion-safe: variant at the call site can't reach. */
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="skeleton"] {
+    animation: none;
+  }
+}

@@ -1,4 +1,3 @@
-import { Globe } from "lucide-react";
 import Link from "next/link";
 import Logo from "@/components/layout/Logo";
 
@@ -7,7 +6,7 @@ const supportLinks = ["Shipping & Returns", "Privacy & Terms"];
 export default function Footer() {
   return (
     <footer className="border-t border-[rgba(138,121,104,0.2)]">
-      <div className="mx-auto max-w-360 px-5 pb-4 md:px-16 md:pb-8">
+      <div className="mx-auto max-w-360 px-5 pt-10 pb-4 md:px-16 md:pt-16 md:pb-8">
         {/* Centered: logo */}
         <div className="flex justify-center">
           <Link href="#" className="w-30 transition-opacity hover:opacity-80">
@@ -20,8 +19,8 @@ export default function Footer() {
           Artisanal leather goods, crafted for the discerning few.
         </p>
 
-        {/* Centered: support links */}
-        <nav className="mt-6 flex justify-center gap-8">
+        {/* Centered: support links + copyright */}
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
           {supportLinks.map((link) => (
             <Link
               key={link}
@@ -31,25 +30,9 @@ export default function Footer() {
               {link}
             </Link>
           ))}
-        </nav>
-
-        {/* Bottom: copyright + language */}
-        <div className="mt-8 flex items-center justify-center gap-6">
           <span className="text-on-surface-variant text-[10px] font-semibold tracking-[0.25em] uppercase">
             © 2026 JACK THE JELLI
           </span>
-          <div className="flex items-center gap-1.5">
-            <span className="text-on-surface-variant text-[10px] font-medium">
-              EN
-            </span>
-            <Link
-              href="#"
-              className="text-on-surface-variant hover:text-foreground transition-colors"
-              aria-label="Language"
-            >
-              <Globe className="h-3.5 w-3.5" />
-            </Link>
-          </div>
         </div>
       </div>
     </footer>

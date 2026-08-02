@@ -20,7 +20,7 @@ export default function HeroSection() {
       {/* Background image */}
       <div className="absolute inset-0 h-full w-full">
         <Image
-          src={heroImages[0]}
+          src={"/hero-image.webp"}
           alt="A cinematic, high-end editorial close-up of a handcrafted leather wallet on a stone pedestal"
           fill
           sizes="100vw"
@@ -28,16 +28,15 @@ export default function HeroSection() {
           priority
           unoptimized
         />
-        <div className="from-background/40 absolute inset-0 bg-linear-to-t to-transparent" />
       </div>
 
       {/* Hero content */}
-      <div className="relative z-10 mx-auto w-full max-w-360 px-5 text-center md:px-16">
+      <div className="bg-background/30 relative z-10 mx-auto max-w-360 px-5 py-8 text-center md:px-16">
         <div
           ref={ref1}
           className={`transition-all duration-1000 ${vis1 ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}
         >
-          <span className="text-foreground/80 mb-6 block text-[12px] font-semibold tracking-[0.2em] uppercase">
+          <span className="text-foreground mb-6 block text-sm font-semibold tracking-[0.2em] uppercase">
             The Heritage Collection
           </span>
         </div>
@@ -61,7 +60,7 @@ export default function HeroSection() {
           className={`transition-all delay-200 duration-1000 ${vis3 ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}
         >
           <Link
-            href="#collection"
+            href="/collection"
             className="bg-foreground text-background hover:bg-foreground/90 inline-flex items-center justify-center rounded-none px-10 py-4 text-[12px] font-semibold tracking-widest uppercase transition-colors duration-300"
           >
             Explore Collection

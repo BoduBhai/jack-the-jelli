@@ -9,10 +9,10 @@ export default function Logo({ priority = false }: LogoProps) {
     <Image
       src="/logo.svg"
       alt="JACK THE JELLI"
-      className="h-auto w-full object-contain"
+      className="h-full w-auto object-contain"
       priority={priority}
-      width={150}
-      height={150}
+      width={1242}
+      height={742}
     />
   );
 }

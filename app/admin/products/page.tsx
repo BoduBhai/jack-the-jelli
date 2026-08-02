@@ -30,6 +30,9 @@ interface AdminInventoryProps {
   }>;
 }
 
+// TODO: Add a loading state for when the products are being fetched.
+// TODO: Make the table scrollable.
+
 export default async function AdminInventory({
   searchParams,
 }: AdminInventoryProps) {
@@ -45,7 +48,12 @@ export default async function AdminInventory({
       : undefined;
   const page = Number.parseInt(params.page ?? "1", 10);
 
-  const { products, total, page: currentPage, totalPages } = await getProducts({
+  const {
+    products,
+    total,
+    page: currentPage,
+    totalPages,
+  } = await getProducts({
     q: params.q,
     stock,
     status,
