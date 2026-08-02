@@ -115,6 +115,64 @@ export async function getPublicProducts({
   };
 }
 
+export interface RelatedProductQuery {
+  /** The product being viewed — excluded from its own suggestions. */
+  productId: string;
+  price: number;
+  limit?: number;
+}
+
+/**
+ * Pieces nearest in price to the one being viewed, regardless of category.
+ * Two bounded queries (one on each side of the price) beat scanning the whole
+ * catalogue and sorting the distance in memory.
+ */
+export async function getRelatedProducts({
+  productId,
+  price,
+  limit = 8,
+}: RelatedProductQuery): Promise<PublicProduct[]> {
+  if (!Types.ObjectId.isValid(productId)) return [];
+
+  await connectDB();
+  // Referenced so the "Category" model is registered before populate runs.
+  void Category;
+
+  const base: QueryFilter<IProduct> = {
+    status: "Published",
+    _id: { $ne: new Types.ObjectId(productId) },
+  };
+
+  const [atOrAbove, below] = await Promise.all([
+    Product.find({ ...base, price: { $gte: price } })
+      .sort({ price: 1, createdAt: -1 })
+      .limit(limit)
+      .populate<{ category: { _id: Types.ObjectId; name: string } | null }>(
+        "category",
+        "name",
+      )
+      .lean<LeanProduct[]>(),
+    Product.find({ ...base, price: { $lt: price } })
+      .sort({ price: -1, createdAt: -1 })
+      .limit(limit)
+      .populate<{ category: { _id: Types.ObjectId; name: string } | null }>(
+        "category",
+        "name",
+      )
+      .lean<LeanProduct[]>(),
+  ]);
+
+  return [...atOrAbove, ...below]
+    .sort((a, b) => {
+      const distance = Math.abs(a.price - price) - Math.abs(b.price - price);
+      if (distance !== 0) return distance;
+      // Same distance (a tie above and below, or identical prices): newest wins.
+      return (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0);
+    })
+    .slice(0, limit)
+    .map(toPublicProduct);
+}
+
 /**
  * Looks up a single product for the storefront detail page. Filters on
  * Published so a Draft or Archived slug 404s instead of leaking.

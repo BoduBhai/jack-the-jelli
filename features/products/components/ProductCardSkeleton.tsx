@@ -1,6 +1,11 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function ProductCardSkeleton() {
+export default function ProductCardSkeleton({
+  variant = "default",
+}: {
+  /** Mirrors the matching ProductCard variant. */
+  variant?: "default" | "quiet";
+}) {
   return (
     <div>
       <Skeleton className="bg-surface-container aspect-4/5 w-full rounded-none" />
@@ -9,10 +14,12 @@ export default function ProductCardSkeleton() {
         <Skeleton className="h-4 w-1/3 rounded-none" />
       </div>
       {/* Matches the action row on ProductCard so the grid doesn't jump. */}
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <Skeleton className="h-10 rounded-none" />
-        <Skeleton className="h-10 rounded-none" />
-      </div>
+      {variant === "default" && (
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <Skeleton className="h-10 rounded-none" />
+          <Skeleton className="h-10 rounded-none" />
+        </div>
+      )}
     </div>
   );
 }
