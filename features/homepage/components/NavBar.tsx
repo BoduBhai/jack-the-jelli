@@ -3,14 +3,18 @@
 import { useState, useEffect } from "react";
 import { Menu, X, User, ShoppingBag } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import Logo from "@/components/layout/Logo";
 
 const navLinks = [
-  { label: "Collection", href: "#collection" },
-  { label: "Craftsmanship", href: "#craftsmanship" },
+  { label: "Collection", href: "/collection" },
+  { label: "Craftsmanship", href: "/#craftsmanship" },
+  { label: "Archives", href: "#" },
+  { label: "Journal", href: "#" },
 ];
 
 export default function NavBar() {
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -44,15 +48,22 @@ export default function NavBar() {
 
         {/* Left nav links */}
         <div className="hidden items-center gap-8 md:flex">
-          {navLinks.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className="hover:text-foreground text-on-surface-variant text-xs font-semibold tracking-widest uppercase transition-colors duration-300"
-            >
-              {link.label}
-            </Link>
-          ))}
+          {navLinks.map((link) => {
+            const isActive = pathname === link.href;
+            return (
+              <Link
+                key={link.label}
+                href={link.href}
+                className={`hover:text-foreground border-b text-xs font-semibold tracking-widest uppercase transition-colors duration-300 ${
+                  isActive
+                    ? "border-foreground text-foreground"
+                    : "text-on-surface-variant border-transparent"
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </div>
 
         {/* Center logo */}
@@ -86,16 +97,21 @@ export default function NavBar() {
       {/* Mobile menu overlay */}
       {mobileOpen && (
         <div className="bg-background absolute inset-x-0 top-full flex flex-col gap-4 border-t border-[rgba(138,121,104,0.2)] px-5 py-6 md:hidden">
-          {navLinks.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className="hover:text-foreground text-on-surface-variant text-[12px] font-semibold tracking-widest uppercase transition-colors duration-300"
-              onClick={() => setMobileOpen(false)}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {navLinks.map((link) => {
+            const isActive = pathname === link.href;
+            return (
+              <Link
+                key={link.label}
+                href={link.href}
+                className={`hover:text-foreground text-[12px] font-semibold tracking-widest uppercase transition-colors duration-300 ${
+                  isActive ? "text-foreground" : "text-on-surface-variant"
+                }`}
+                onClick={() => setMobileOpen(false)}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </div>
       )}
     </nav>
