@@ -10,6 +10,9 @@ export default function NavBar() {
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
+    // Run once on mount: a reload part-way down the page starts scrolled, and
+    // the listener alone wouldn't fire until the next scroll.
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -26,15 +29,20 @@ export default function NavBar() {
           aria-label="Jack The Jelli — Home"
           className="block h-10 transition-opacity hover:opacity-80 md:h-12"
         >
-          <Logo priority />
+          {/* The link already carries the brand name. */}
+          <Logo priority alt="" />
         </Link>
 
+        {/* Inert until the cart feature lands. Disabled rather than silently
+            unresponsive, and without the filled badge — that dot read as
+            "you have items", which was never true. */}
         <button
-          className="text-foreground absolute right-5 transition-opacity duration-300 hover:opacity-70 md:right-16"
-          aria-label="Cart"
+          type="button"
+          disabled
+          className="text-foreground absolute right-5 transition-opacity duration-300 disabled:opacity-40 md:right-16"
+          aria-label="Cart — coming soon"
         >
-          <ShoppingBag className="h-5 w-5 font-light" />
-          <span className="bg-foreground absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full" />
+          <ShoppingBag className="h-5 w-5" aria-hidden="true" />
         </button>
       </div>
     </nav>

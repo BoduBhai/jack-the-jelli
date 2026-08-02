@@ -78,7 +78,7 @@ export default function ProductSection() {
             </div>
 
             <Link
-              href="/collection?category=6a6dfc76b142f0e85a184a22"
+              href="/collection?category=flame-wallet"
               className="text-foreground border-foreground hover:border-on-surface-variant hover:text-on-surface-variant inline-flex w-fit items-center gap-2 border-b pb-1 text-[12px] font-semibold tracking-widest uppercase transition-colors duration-300"
             >
               Discover Flame
@@ -172,7 +172,7 @@ export default function ProductSection() {
             </div>
 
             <Link
-              href="/collection?category=6a6dfc7db142f0e85a184a23"
+              href="/collection?category=regular-wallet"
               className="border-foreground text-foreground hover:bg-foreground hover:text-background inline-flex items-center justify-center rounded-none border bg-transparent px-10 py-4 text-[12px] font-semibold tracking-widest uppercase transition-colors duration-300"
             >
               View Classic

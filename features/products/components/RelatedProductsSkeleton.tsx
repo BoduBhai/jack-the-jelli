@@ -2,8 +2,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ProductCardSkeleton from "@/features/products/components/ProductCardSkeleton";
 
 /**
- * Mirrors RelatedProducts' shell and card height. A plain grid stands in for
- * the carousel — the placeholder never scrolls, so embla would be dead weight.
+ * Mirrors RelatedProducts' shell. The track below reproduces embla's own
+ * markup — the overflow-hidden viewport, the negative-margin flex row and the
+ * per-breakpoint `basis` of each slide — so the placeholder cards sit at the
+ * exact widths the real carousel will use and nothing shifts when the
+ * suspended section resolves. A plain div stands in for the carousel itself:
+ * the placeholder never scrolls, so embla would be dead weight.
  */
 export default function RelatedProductsSkeleton() {
   return (
@@ -20,10 +24,17 @@ export default function RelatedProductsSkeleton() {
           </div>
         </div>
 
-        <div className="mt-10 grid grid-cols-2 gap-4 md:gap-8 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <ProductCardSkeleton key={i} variant="quiet" />
-          ))}
+        <div className="overflow-hidden">
+          <div className="mt-10 -ml-4 flex md:-ml-8">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="min-w-0 shrink-0 grow-0 basis-[70%] pl-4 sm:basis-1/2 md:pl-8 lg:basis-1/3 xl:basis-1/4"
+              >
+                <ProductCardSkeleton variant="quiet" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

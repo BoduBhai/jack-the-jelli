@@ -6,20 +6,17 @@ import DiscoverMoreButton from "@/features/products/components/DiscoverMoreButto
 import ProductCard from "@/features/products/components/ProductCard";
 import ProductCardSkeleton from "@/features/products/components/ProductCardSkeleton";
 import type { CategoryFilterOption } from "@/features/products/lib/categories";
+import {
+  PRODUCTS_PER_PAGE,
+  type SortOption,
+} from "@/features/products/lib/constants";
 import { loadMoreProducts } from "@/features/products/lib/product-actions";
-import type { SortOption } from "@/features/products/lib/products";
 import type { Product } from "@/features/products/lib/types";
-
-// Matches PRODUCTS_PER_PAGE in features/products/lib/products.ts. Duplicated
-// rather than imported: that module pulls in Mongoose and must stay
-// server-only.
-const PRODUCTS_PER_PAGE_CLIENT = 9;
 
 interface CollectionGridProps {
   products: Product[];
   categories: CategoryFilterOption[];
   total: number;
-  page: number;
   totalPages: number;
   query: { q?: string; category?: string; sort: SortOption };
 }
@@ -28,12 +25,12 @@ export default function CollectionGrid({
   products: initialProducts,
   categories,
   total,
-  page: initialPage,
   totalPages,
   query,
 }: CollectionGridProps) {
   const [products, setProducts] = useState(initialProducts);
-  const [page, setPage] = useState(initialPage);
+  // The server always renders page 1; later pages are appended from here.
+  const [page, setPage] = useState(1);
   const [addedCount, setAddedCount] = useState(0);
   const [isPending, startTransition] = useTransition();
 
@@ -83,7 +80,7 @@ export default function CollectionGrid({
           className="mt-12 grid grid-cols-1 gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3"
           aria-hidden="true"
         >
-          {Array.from({ length: PRODUCTS_PER_PAGE_CLIENT }).map((_, i) => (
+          {Array.from({ length: PRODUCTS_PER_PAGE }).map((_, i) => (
             <ProductCardSkeleton key={i} />
           ))}
         </div>

@@ -7,7 +7,7 @@ export default function CollectionError({
   unstable_retry: () => void;
 }) {
   return (
-    <main className="mx-auto max-w-360 px-5 py-40 text-center md:px-16">
+    <div className="mx-auto max-w-360 px-5 py-40 text-center md:px-16">
       <h1 className="text-foreground font-serif text-[32px] leading-[1.2]">
         Something went wrong
       </h1>
@@ -21,6 +21,6 @@ export default function CollectionError({
       >
         Try Again
       </button>
-    </main>
+    </div>
   );
 }

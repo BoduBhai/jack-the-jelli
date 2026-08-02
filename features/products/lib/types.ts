@@ -1,3 +1,5 @@
+/** The grid/card payload. Kept to exactly what a card renders — every extra
+ *  field here is shipped to the browser for every product on the page. */
 export interface Product {
   id: string;
   slug: string;
@@ -5,7 +7,6 @@ export interface Product {
   price: number;
   thumbnail?: string;
   category: string;
-  createdAt: string;
 }
 
 /** One image on the detail page. Mirrors IProductImage without the Mongoose types. */

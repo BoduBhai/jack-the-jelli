@@ -11,7 +11,11 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import type { CategoryFilterOption } from "@/features/products/lib/categories";
-import type { SortOption } from "@/features/products/lib/products";
+import {
+  SORT_OPTIONS,
+  toSortOption,
+  type SortOption,
+} from "@/features/products/lib/constants";
 
 const sortLabels: Record<SortOption, string> = {
   newest: "Newest",
@@ -48,14 +52,19 @@ export default function CollectionFilters({
     setSearch(currentQ);
   }
 
-  const category = searchParams.get("category") ?? "all";
-  const sort = (searchParams.get("sort") as SortOption) || "newest";
+  // Both params are hand-editable, so neither is trusted: an unknown value
+  // falls back to the same default the server picked, instead of leaving the
+  // trigger showing a blank label for a filter that isn't actually applied.
+  const categoryParam = searchParams.get("category");
+  const category = categories.some((c) => c.slug === categoryParam)
+    ? (categoryParam as string)
+    : "all";
+  const sort = toSortOption(searchParams.get("sort"));
 
   const setParam = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
     if (value === "all" || !value) params.delete(key);
     else params.set(key, value);
-    params.delete("page");
     startTransition(() => router.replace(`?${params.toString()}`));
   };
 
@@ -68,6 +77,8 @@ export default function CollectionFilters({
     setSearch("");
     setParam("q", "");
   };
+
+  const activeCategoryName = categories.find((c) => c.slug === category)?.name;
 
   return (
     <div
@@ -91,7 +102,8 @@ export default function CollectionFilters({
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search collection..."
           aria-label="Search collection"
-          className="h-auto rounded-none border-0 border-b border-secondary bg-transparent py-1.5 pr-6 pl-6 text-[16px] shadow-none focus-visible:ring-0"
+          maxLength={100}
+          className="border-secondary h-auto rounded-none border-0 border-b bg-transparent py-1.5 pr-6 pl-6 text-[16px] shadow-none focus-visible:ring-0"
         />
         {search && (
           <button
@@ -106,32 +118,30 @@ export default function CollectionFilters({
       </form>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
-        <Select value={category} onValueChange={(value) => setParam("category", value)}>
+        <Select
+          value={category}
+          onValueChange={(value) => setParam("category", value)}
+        >
           <SelectTrigger
             className={filterTriggerClasses}
             aria-label="Filter by category"
           >
             <span>
               Category
-              {category !== "all"
-                ? `: ${categories.find((c) => c.id === category)?.name ?? ""}`
-                : ""}
+              {activeCategoryName ? `: ${activeCategoryName}` : ""}
             </span>
           </SelectTrigger>
           <SelectContent position="popper" align="start" sideOffset={8}>
             <SelectItem value="all">All Categories</SelectItem>
             {categories.map((c) => (
-              <SelectItem key={c.id} value={c.id}>
+              <SelectItem key={c.slug} value={c.slug}>
                 {c.name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        <Select
-          value={sort}
-          onValueChange={(value) => setParam("sort", value)}
-        >
+        <Select value={sort} onValueChange={(value) => setParam("sort", value)}>
           <SelectTrigger
             className={filterTriggerClasses}
             aria-label="Sort products"
@@ -139,7 +149,7 @@ export default function CollectionFilters({
             <span>Sort by: {sortLabels[sort]}</span>
           </SelectTrigger>
           <SelectContent position="popper" align="start" sideOffset={8}>
-            {(Object.keys(sortLabels) as SortOption[]).map((option) => (
+            {SORT_OPTIONS.map((option) => (
               <SelectItem key={option} value={option}>
                 {sortLabels[option]}
               </SelectItem>

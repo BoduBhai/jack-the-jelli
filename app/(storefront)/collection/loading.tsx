@@ -1,10 +1,10 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import ProductCardSkeleton from "@/features/products/components/ProductCardSkeleton";
-import { PRODUCTS_PER_PAGE } from "@/features/products/lib/products";
+import { PRODUCTS_PER_PAGE } from "@/features/products/lib/constants";
 
 export default function CollectionLoading() {
   return (
-    <main className="flex-1">
+    <>
       {/* Mirrors CollectionHero's text blocks so there's no layout shift on swap-in */}
       <section className="mx-auto max-w-360 px-5 pt-40 pb-16 text-center md:px-16 md:pt-48">
         <Skeleton className="mx-auto mb-6 h-10 w-64 rounded-none md:h-16 md:w-96" />
@@ -28,6 +28,6 @@ export default function CollectionLoading() {
           ))}
         </div>
       </section>
-    </main>
+    </>
   );
 }

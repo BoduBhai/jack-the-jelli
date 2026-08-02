@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { EB_Garamond, Inter } from "next/font/google";
 import "./globals.css";
-import ClientFooter from "@/components/layout/ClientFooter";
 import { Toaster } from "@/components/ui/sonner";
 
 const garamond = EB_Garamond({
@@ -33,8 +32,9 @@ export default function RootLayout({
       className={`${garamond.variable} ${inter.variable} h-full scroll-smooth`}
     >
       <body className="text-primary m-0 flex min-h-full flex-col font-(--font-inter) antialiased">
+        {/* Storefront chrome (nav + footer) lives in app/(storefront)/layout.tsx
+            so /admin opts out by route rather than by a pathname check. */}
         {children}
-        <ClientFooter />
         <Toaster />
       </body>
     </html>

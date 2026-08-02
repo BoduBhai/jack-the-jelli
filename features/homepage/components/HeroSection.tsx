@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useInView } from "@/lib/hooks/useInView";
 import Link from "next/link";
+import heroImage from "@/public/hero-image.webp";
 
 export default function HeroSection() {
   const { ref: ref1, isVisible: vis1 } = useInView({}, "-50px");
@@ -11,18 +12,24 @@ export default function HeroSection() {
 
   return (
     <header className="bg-surface-container relative flex h-screen min-h-200 w-screen items-center justify-center overflow-hidden">
-      {/* Background image */}
+      {/* Background image. This is the LCP element, so it is never deferred:
+          a Suspense boundary would only delay it, since next/image doesn't
+          suspend and the bytes are what cost time, not a data fetch. What
+          actually pays off is letting the optimizer serve a device-sized
+          variant (`unoptimized` was defeating both that and `sizes`), and
+          covering the gap before it arrives with the blurred placeholder that
+          the static import generates at build time. */}
       <div className="absolute inset-0 h-full w-full">
         <Image
-          src={"/hero-image.webp"}
+          src={heroImage}
           alt="A cinematic, high-end editorial close-up of a handcrafted leather wallet on a stone pedestal"
           fill
           sizes="100vw"
+          placeholder="blur"
           className="origin-center scale-105 object-cover transition-transform duration-[10s] ease-out hover:scale-100"
           // priority is deprecated in Next 16 — see ProductGallery.tsx.
           loading="eager"
           fetchPriority="high"
-          unoptimized
         />
       </div>
 

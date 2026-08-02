@@ -1,9 +1,10 @@
 import { connectDB } from "@/lib/db";
 import { Category } from "@/models";
 
+/** Addressed by slug, not `_id`: the value ends up in a shareable URL. */
 export interface CategoryFilterOption {
-  id: string;
   name: string;
+  slug: string;
 }
 
 /**
@@ -14,10 +15,13 @@ export async function getCategoryFilterOptions(): Promise<
   CategoryFilterOption[]
 > {
   await connectDB();
-  const categories = await Category.find().sort({ name: 1 }).select("name").lean();
+  const categories = await Category.find()
+    .sort({ name: 1 })
+    .select("name slug")
+    .lean();
 
   return categories.map((category) => ({
-    id: String(category._id),
     name: category.name,
+    slug: category.slug,
   }));
 }

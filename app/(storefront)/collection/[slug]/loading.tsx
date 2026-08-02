@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProductLoading() {
   return (
-    <main className="flex-1">
+    <>
       {/* Mirrors ProductDetailView's split layout so there's no shift on swap-in */}
       <div className="mx-auto max-w-360 px-5 pt-32 pb-32 md:px-16 md:pt-40">
         <div className="flex flex-col gap-10 lg:flex-row lg:gap-12">
@@ -38,6 +38,6 @@ export default function ProductLoading() {
           </div>
         </div>
       </div>
-    </main>
+    </>
   );
 }
