@@ -8,6 +8,11 @@ export default function ProductCardSkeleton() {
         <Skeleton className="h-5 w-2/3 rounded-none" />
         <Skeleton className="h-4 w-1/3 rounded-none" />
       </div>
+      {/* Matches the action row on ProductCard so the grid doesn't jump. */}
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <Skeleton className="h-10 rounded-none" />
+        <Skeleton className="h-10 rounded-none" />
+      </div>
     </div>
   );
 }

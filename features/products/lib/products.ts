@@ -2,7 +2,10 @@ import { Types, type QueryFilter } from "mongoose";
 import { connectDB } from "@/lib/db";
 import { escapeRegex } from "@/lib/slug";
 import { Category, Product, type IProduct } from "@/models";
-import type { Product as PublicProduct } from "@/features/products/lib/types";
+import type {
+  Product as PublicProduct,
+  ProductDetail,
+} from "@/features/products/lib/types";
 
 // Server-only: pulls in Mongoose. Returns plain, serializable objects since
 // Mongoose docs don't cross the server/client boundary (§6.3).
@@ -33,6 +36,25 @@ function toPublicProduct(product: LeanProduct): PublicProduct {
     // A category deleted out from under a product shouldn't crash the grid.
     category: product.category?.name ?? "Uncategorised",
     createdAt: product.createdAt?.toISOString() ?? "",
+  };
+}
+
+function toProductDetail(product: LeanProduct): ProductDetail {
+  return {
+    id: String(product._id),
+    slug: product.slug,
+    name: product.name,
+    sku: product.sku,
+    // A category deleted out from under a product shouldn't crash the page.
+    category: product.category?.name ?? "Uncategorised",
+    price: product.price,
+    description: product.description,
+    stock: product.stock,
+    thumbnail: product.thumbnail,
+    images: (product.images ?? []).map((image) => ({
+      url: image.url,
+      publicId: image.publicId,
+    })),
   };
 }
 
@@ -91,4 +113,31 @@ export async function getPublicProducts({
     page: currentPage,
     totalPages,
   };
+}
+
+/**
+ * Looks up a single product for the storefront detail page. Filters on
+ * Published so a Draft or Archived slug 404s instead of leaking.
+ */
+export async function getPublicProductBySlug(
+  slug: string,
+): Promise<ProductDetail | null> {
+  const normalised = slug.trim().toLowerCase();
+  if (!normalised) return null;
+
+  await connectDB();
+  // Referenced so the "Category" model is registered before populate runs.
+  void Category;
+
+  const product = await Product.findOne({
+    slug: normalised,
+    status: "Published",
+  })
+    .populate<{ category: { _id: Types.ObjectId; name: string } | null }>(
+      "category",
+      "name",
+    )
+    .lean<LeanProduct | null>();
+
+  return product ? toProductDetail(product) : null;
 }
