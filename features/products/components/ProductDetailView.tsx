@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { getStockStatus } from "@/features/admin/lib/stock";
+import { getStockStatus } from "@/features/products/lib/stock";
 import AddToCartButton from "@/features/products/components/AddToCartButton";
 import ProductGallery from "@/features/products/components/ProductGallery";
 import ProductSpecList from "@/features/products/components/ProductSpecList";

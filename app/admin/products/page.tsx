@@ -15,7 +15,7 @@ import ProductFilters from "@/features/admin/components/ProductFilters";
 import ProductPagination from "@/features/admin/components/ProductPagination";
 import StockIndicator from "@/features/admin/components/StockIndicator";
 import { getProducts } from "@/features/admin/lib/products";
-import type { StockStatus } from "@/features/admin/lib/stock";
+import type { StockStatus } from "@/features/products/lib/stock";
 
 export const dynamic = "force-dynamic";
 

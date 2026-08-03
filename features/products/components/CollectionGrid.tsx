@@ -32,19 +32,25 @@ export default function CollectionGrid({
   // The server always renders page 1; later pages are appended from here.
   const [page, setPage] = useState(1);
   const [addedCount, setAddedCount] = useState(0);
+  const [loadMoreError, setLoadMoreError] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const handleLoadMore = () => {
     startTransition(async () => {
-      const result = await loadMoreProducts({
-        q: query.q,
-        category: query.category,
-        sort: query.sort,
-        page: page + 1,
-      });
-      setProducts((prev) => [...prev, ...result.products]);
-      setPage(result.page);
-      setAddedCount(result.products.length);
+      try {
+        const result = await loadMoreProducts({
+          q: query.q,
+          category: query.category,
+          sort: query.sort,
+          page: page + 1,
+        });
+        setProducts((prev) => [...prev, ...result.products]);
+        setPage(result.page);
+        setAddedCount(result.products.length);
+        setLoadMoreError(false);
+      } catch {
+        setLoadMoreError(true);
+      }
     });
   };
 
@@ -84,6 +90,22 @@ export default function CollectionGrid({
             <ProductCardSkeleton key={i} />
           ))}
         </div>
+      )}
+
+      {loadMoreError && (
+        <p
+          role="alert"
+          className="text-on-surface-variant mt-12 text-center text-[14px]"
+        >
+          Couldn&apos;t load more pieces.{" "}
+          <button
+            type="button"
+            onClick={handleLoadMore}
+            className="text-foreground underline underline-offset-2"
+          >
+            Try again
+          </button>
+        </p>
       )}
 
       {products.length > 0 && (
