@@ -10,7 +10,7 @@ export default function Footer() {
         {/* Centered: logo */}
         <div className="flex justify-center">
           <Link href="#" className="w-30 transition-opacity hover:opacity-80">
-            <Logo />
+            <Logo priority />
           </Link>
         </div>
 

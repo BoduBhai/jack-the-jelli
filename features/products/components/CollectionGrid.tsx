@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import CollectionFilters from "@/features/products/components/CollectionFilters";
 import DiscoverMoreButton from "@/features/products/components/DiscoverMoreButton";
 import ProductCard from "@/features/products/components/ProductCard";
@@ -34,8 +34,15 @@ export default function CollectionGrid({
   const [addedCount, setAddedCount] = useState(0);
   const [loadMoreError, setLoadMoreError] = useState(false);
   const [isPending, startTransition] = useTransition();
+  // Shared by the "Discover More" button and the retry link so a second click
+  // while a request is in flight is a no-op rather than firing a duplicate page fetch.
+  const isLoadingRef = useRef(false);
 
   const handleLoadMore = () => {
+    if (isLoadingRef.current) return;
+    isLoadingRef.current = true;
+    setLoadMoreError(false);
+
     startTransition(async () => {
       try {
         const result = await loadMoreProducts({
@@ -47,9 +54,10 @@ export default function CollectionGrid({
         setProducts((prev) => [...prev, ...result.products]);
         setPage(result.page);
         setAddedCount(result.products.length);
-        setLoadMoreError(false);
       } catch {
         setLoadMoreError(true);
+      } finally {
+        isLoadingRef.current = false;
       }
     });
   };
@@ -101,7 +109,8 @@ export default function CollectionGrid({
           <button
             type="button"
             onClick={handleLoadMore}
-            className="text-foreground underline underline-offset-2"
+            disabled={isPending}
+            className="text-foreground underline underline-offset-2 disabled:pointer-events-none disabled:opacity-60"
           >
             Try again
           </button>
