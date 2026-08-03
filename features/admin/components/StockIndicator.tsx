@@ -1,10 +1,13 @@
-import { getStockStatus, type StockStatus } from "@/features/admin/lib/stock";
+import {
+  getStockStatus,
+  type StockStatus,
+} from "@/features/products/lib/stock";
 
 interface StockIndicatorProps {
   count: number;
 }
 
-// "How low is low" lives in features/admin/lib/stock.ts (D3b) — never inline here.
+// "How low is low" lives in features/products/lib/stock.ts (D3b) — never inline here.
 const STOCK_STYLES: Record<StockStatus, { dot: string; text: string }> = {
   "out-of-stock": {
     dot: "bg-muted-foreground/40",

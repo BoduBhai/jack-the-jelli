@@ -15,7 +15,7 @@ import ProductFilters from "@/features/admin/components/ProductFilters";
 import ProductPagination from "@/features/admin/components/ProductPagination";
 import StockIndicator from "@/features/admin/components/StockIndicator";
 import { getProducts } from "@/features/admin/lib/products";
-import type { StockStatus } from "@/features/admin/lib/stock";
+import type { StockStatus } from "@/features/products/lib/stock";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +29,9 @@ interface AdminInventoryProps {
     page?: string;
   }>;
 }
+
+// TODO: Add a loading state for when the products are being fetched.
+// TODO: Make the table scrollable.
 
 export default async function AdminInventory({
   searchParams,
@@ -45,7 +48,12 @@ export default async function AdminInventory({
       : undefined;
   const page = Number.parseInt(params.page ?? "1", 10);
 
-  const { products, total, page: currentPage, totalPages } = await getProducts({
+  const {
+    products,
+    total,
+    page: currentPage,
+    totalPages,
+  } = await getProducts({
     q: params.q,
     stock,
     status,

@@ -6,7 +6,7 @@ import { Category, Product, type IProduct } from "@/models";
 import {
   LOW_STOCK_THRESHOLD,
   type StockStatus,
-} from "@/features/admin/lib/stock";
+} from "@/features/products/lib/stock";
 import type { ProductDTO } from "@/features/admin/lib/types";
 
 // Server-only: pulls in Mongoose. Everything here returns plain, serializable

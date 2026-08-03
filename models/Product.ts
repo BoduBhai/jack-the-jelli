@@ -40,7 +40,13 @@ const productSchema = new Schema<IProduct>(
   {
     name: { type: String, required: true, trim: true },
     slug: { type: String, required: true, unique: true, lowercase: true },
-    sku: { type: String, required: true, unique: true, uppercase: true, trim: true },
+    sku: {
+      type: String,
+      required: true,
+      unique: true,
+      uppercase: true,
+      trim: true,
+    },
     category: {
       type: Schema.Types.ObjectId,
       ref: "Category",
@@ -66,6 +72,13 @@ const productSchema = new Schema<IProduct>(
   },
   { timestamps: true },
 );
+
+// Every storefront query filters on `status: "Published"` and then sorts, so
+// the sort key has to ride along in the same index or Mongo falls back to an
+// in-memory sort over the whole matching set.
+productSchema.index({ status: 1, createdAt: -1 }); // default browse + "newest"
+productSchema.index({ status: 1, price: 1 }); // price sorts + related products
+productSchema.index({ status: 1, category: 1, createdAt: -1 }); // category filter
 
 // Derive the slug from the name, de-duplicating with a numeric suffix. The
 // unique index is still the last line of defence against a race.
