@@ -34,21 +34,23 @@ export default function NavBar() {
           <Logo priority alt="" />
         </Link>
 
-        <div className="absolute left-5 md:left-16">
+        <div className="absolute right-5 flex items-center gap-4 md:right-16 md:gap-6">
           <UserMenu />
-        </div>
 
-        {/* Inert until the cart feature lands. Disabled rather than silently
-            unresponsive, and without the filled badge — that dot read as
-            "you have items", which was never true. */}
-        <button
-          type="button"
-          disabled
-          className="text-foreground absolute right-5 transition-opacity duration-300 disabled:opacity-40 md:right-16"
-          aria-label="Cart — coming soon"
-        >
-          <ShoppingBag className="h-5 w-5" aria-hidden="true" />
-        </button>
+          {/* Inert until the cart feature lands. Disabled rather than silently
+              unresponsive, and without the filled badge — that dot read as
+              "you have items", which was never true. */}
+          <button
+            type="button"
+            disabled
+            // Negative margin holds the icon in place while the padding gives
+            // it a 40px hit area; bare, it was a 20px target.
+            className="text-foreground focus-visible:ring-ring/50 -m-2.5 p-2.5 outline-hidden transition-opacity duration-300 focus-visible:ring-3 disabled:opacity-40"
+            aria-label="Cart — coming soon"
+          >
+            <ShoppingBag className="h-5 w-5" aria-hidden="true" />
+          </button>
+        </div>
       </div>
     </nav>
   );
