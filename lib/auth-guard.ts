@@ -1,22 +1,39 @@
+import { ObjectId } from "mongodb";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { getUsersCollection } from "@/lib/users";
+
 /**
  * The single choke point for privileged operations (D6).
  *
  * Server Actions and route handlers are reachable by direct POST from anyone on
  * the internet — rendering a page under /admin protects nothing. Every admin
- * action and admin route handler calls this as its FIRST statement.
- *
- * Real JWT auth arrives in Phase 4. Until then this refuses to run anywhere but
- * a dev machine, so the create/update endpoints can't be driven against a
- * production database. When Phase 4 lands, only this file changes: read the
- * HTTP-only cookie, verify the JWT, check `role === "admin"`.
- *
- * ⚠️ Do not deploy to production before Phase 4 auth exists.
+ * action and admin route handler calls requireAdmin() as its FIRST statement.
  */
-export async function requireAdmin(): Promise<void> {
-  // TODO(phase-4): verify the JWT cookie and the user's admin role instead.
-  if (process.env.NODE_ENV !== "development") {
-    throw new Error(
-      "Admin authentication is not implemented yet (Phase 4). Refusing to run a privileged operation outside development.",
-    );
-  }
+
+export async function getSession() {
+  return auth.api.getSession({ headers: await headers() });
+}
+
+export async function requireAuth() {
+  const session = await getSession();
+  if (!session) redirect("/login");
+  return session;
+}
+
+export async function requireAdmin() {
+  const session = await getSession();
+  if (!session) redirect("/login");
+
+  const users = await getUsersCollection();
+  // §3.3: role is re-read from the database on every call, never trusted from
+  // the session token, so revoking admin takes effect on the next request.
+  //
+  // Better Auth's MongoDB adapter stores `_id` as a native ObjectId even
+  // though `session.user.id` is exposed as a string on the client — querying
+  // with the raw string silently matches zero documents.
+  const user = await users.findOne({ _id: new ObjectId(session.user.id) });
+  if (user?.role !== "admin") redirect("/");
+  return user;
 }

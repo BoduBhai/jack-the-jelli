@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import Logo from "@/components/layout/Logo";
+import UserMenu from "@/components/layout/UserMenu";
 
 export default function NavBar() {
   const [scrolled, setScrolled] = useState(false);
@@ -32,6 +33,10 @@ export default function NavBar() {
           {/* The link already carries the brand name. */}
           <Logo priority alt="" />
         </Link>
+
+        <div className="absolute left-5 md:left-16">
+          <UserMenu />
+        </div>
 
         {/* Inert until the cart feature lands. Disabled rather than silently
             unresponsive, and without the filled badge — that dot read as
