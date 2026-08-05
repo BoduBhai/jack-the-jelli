@@ -1,10 +1,15 @@
 import AdminSidebar from "@/features/admin/components/AdminSidebar";
+import { requireAdmin } from "@/lib/auth-guard";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // proxy.ts only redirects logged-out visitors (cookie presence, §3.4) — the
+  // role check that turns away a logged-in customer has to happen here.
+  await requireAdmin("/admin");
+
   return (
     <div className="bg-background text-foreground min-h-screen">
       <AdminSidebar />

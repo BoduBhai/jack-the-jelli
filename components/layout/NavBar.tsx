@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import Logo from "@/components/layout/Logo";
+import UserMenu from "@/components/layout/UserMenu";
 
 export default function NavBar() {
   const [scrolled, setScrolled] = useState(false);
@@ -19,7 +20,10 @@ export default function NavBar() {
 
   return (
     <nav
-      className={`border-border fixed inset-x-0 top-0 z-50 h-24 border-b transition-all duration-500 ${
+      // Naming the two transitioned properties rather than transition-all is
+      // load-bearing: all would animate scrollbar-lock-safe's margin over 500ms
+      // while the scrollbar vanishes instantly, trading the jump for a drift.
+      className={`border-border scrollbar-lock-safe fixed inset-x-0 top-0 z-50 h-24 border-b transition-[background-color,backdrop-filter] duration-500 ${
         scrolled ? "bg-background/60 backdrop-blur-md" : "bg-transparent"
       }`}
     >
@@ -33,17 +37,23 @@ export default function NavBar() {
           <Logo priority alt="" />
         </Link>
 
-        {/* Inert until the cart feature lands. Disabled rather than silently
-            unresponsive, and without the filled badge — that dot read as
-            "you have items", which was never true. */}
-        <button
-          type="button"
-          disabled
-          className="text-foreground absolute right-5 transition-opacity duration-300 disabled:opacity-40 md:right-16"
-          aria-label="Cart — coming soon"
-        >
-          <ShoppingBag className="h-5 w-5" aria-hidden="true" />
-        </button>
+        <div className="absolute right-5 flex items-center gap-4 md:right-16 md:gap-6">
+          <UserMenu />
+
+          {/* Inert until the cart feature lands. Disabled rather than silently
+              unresponsive, and without the filled badge — that dot read as
+              "you have items", which was never true. */}
+          <button
+            type="button"
+            disabled
+            // Negative margin holds the icon in place while the padding gives
+            // it a 40px hit area; bare, it was a 20px target.
+            className="text-foreground focus-visible:ring-ring/50 -m-2.5 p-2.5 outline-hidden transition-opacity duration-300 focus-visible:ring-3 disabled:opacity-40"
+            aria-label="Cart — coming soon"
+          >
+            <ShoppingBag className="h-5 w-5" aria-hidden="true" />
+          </button>
+        </div>
       </div>
     </nav>
   );

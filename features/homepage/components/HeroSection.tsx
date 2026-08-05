@@ -11,7 +11,7 @@ export default function HeroSection() {
   const { ref: ref3, isVisible: vis3 } = useInView({}, "-50px");
 
   return (
-    <header className="bg-surface-container relative flex h-screen min-h-200 w-screen items-center justify-center overflow-hidden">
+    <header className="bg-surface-container relative flex h-screen min-h-200 w-full items-center justify-center overflow-hidden">
       {/* Background image. This is the LCP element, so it is never deferred:
           a Suspense boundary would only delay it, since next/image doesn't
           suspend and the bytes are what cost time, not a data fetch. What
