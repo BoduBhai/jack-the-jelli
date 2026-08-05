@@ -59,35 +59,50 @@ export default function AccountForm({
     setErrors({});
     setIsPending(true);
 
-    // phone has additionalFields input: true, so it's updatable here — role
-    // (input: false) is never accepted by this endpoint, by construction.
-    const { error } = await authClient.updateUser({
-      name: parsed.data.name,
-      phone: parsed.data.phone ?? "",
-    });
+    try {
+      // phone has additionalFields input: true, so it's updatable here — role
+      // (input: false) is never accepted by this endpoint, by construction.
+      const { error } = await authClient.updateUser({
+        name: parsed.data.name,
+        phone: parsed.data.phone ?? "",
+      });
 
-    setIsPending(false);
+      if (error) {
+        setFormError(error.message ?? "Couldn't save your changes. Try again.");
+        return;
+      }
 
-    if (error) {
-      setFormError(error.message ?? "Couldn't save your changes. Try again.");
-      return;
+      setSuccessMessage("Changes saved.");
+    } catch {
+      // A fulfilled request reports failure through `error`; only a request
+      // that never completed (offline, aborted) rejects, and without this the
+      // button would stay stuck on "Saving…".
+      setFormError("Couldn't reach the server. Check your connection.");
+    } finally {
+      setIsPending(false);
     }
-
-    setSuccessMessage("Changes saved.");
   }
 
   async function handleResendVerification() {
+    // Both flows share formError, so a stale message from a failed save would
+    // otherwise sit above a resend that succeeded.
+    setFormError(null);
     setResendState("pending");
-    const { error } = await authClient.sendVerificationEmail({
-      email,
-      callbackURL: "/verify-email",
-    });
-    if (error) {
+    try {
+      const { error } = await authClient.sendVerificationEmail({
+        email,
+        callbackURL: "/verify-email",
+      });
+      if (error) {
+        setResendState("idle");
+        setFormError(error.message ?? "Couldn't resend the email. Try again.");
+        return;
+      }
+      setResendState("sent");
+    } catch {
       setResendState("idle");
-      setFormError(error.message ?? "Couldn't resend the email. Try again.");
-      return;
+      setFormError("Couldn't reach the server. Check your connection.");
     }
-    setResendState("sent");
   }
 
   return (

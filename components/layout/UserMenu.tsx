@@ -39,14 +39,22 @@ export default function UserMenu() {
 
   async function handleSignOut() {
     setIsSigningOut(true);
-    // Better Auth resolves with { data, error } instead of throwing, so an
-    // unchecked call navigates away from a session that is still live and
-    // tells the user they signed out when they didn't.
-    const { error } = await authClient.signOut();
+    try {
+      // Better Auth resolves with { data, error } instead of throwing, so an
+      // unchecked call navigates away from a session that is still live and
+      // tells the user they signed out when they didn't.
+      const { error } = await authClient.signOut();
 
-    if (error) {
+      if (error) {
+        setIsSigningOut(false);
+        toast.error(error.message ?? "Couldn't sign you out. Try again.");
+        return;
+      }
+    } catch {
+      // Only a request that never completed rejects; leaving the item disabled
+      // here would strand the menu on "Signing out…" with no way to retry.
       setIsSigningOut(false);
-      toast.error(error.message ?? "Couldn't sign you out. Try again.");
+      toast.error("Couldn't reach the server. Check your connection.");
       return;
     }
 
