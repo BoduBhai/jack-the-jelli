@@ -6,12 +6,15 @@ export const metadata: Metadata = {
 };
 
 interface ResetPasswordPageProps {
-  searchParams: Promise<{ token?: string }>;
+  // Better Auth's /reset-password/:token callback redirects here with either
+  // ?token=… on success or ?error=INVALID_TOKEN when the token is expired,
+  // already consumed, or unknown — the two cases need different copy.
+  searchParams: Promise<{ token?: string; error?: string }>;
 }
 
 export default async function ResetPasswordPage({
   searchParams,
 }: ResetPasswordPageProps) {
-  const { token } = await searchParams;
-  return <ResetPasswordForm token={token} />;
+  const { token, error } = await searchParams;
+  return <ResetPasswordForm token={token} linkError={error} />;
 }

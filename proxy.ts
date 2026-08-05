@@ -8,9 +8,17 @@ import { getSessionCookie } from "better-auth/cookies";
 // without a database call.
 export function proxy(request: NextRequest) {
   const sessionCookie = getSessionCookie(request);
-  if (!sessionCookie) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
+  if (sessionCookie) return;
+
+  const loginUrl = new URL("/login", request.url);
+  // Without this the sign-in always lands on the homepage, so a deep link to
+  // /admin/products/<id> silently loses its destination. Read back through
+  // safeRedirectPath on the login page — never trusted as-is.
+  loginUrl.searchParams.set(
+    "redirect",
+    `${request.nextUrl.pathname}${request.nextUrl.search}`,
+  );
+  return NextResponse.redirect(loginUrl);
 }
 
 export const config = {

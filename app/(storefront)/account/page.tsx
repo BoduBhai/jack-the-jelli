@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AccountPage() {
-  const session = await requireAuth();
+  const session = await requireAuth("/account");
 
   return (
     <div className="mx-auto w-full max-w-360 px-5 py-16 pt-32 md:px-16 md:pt-40">

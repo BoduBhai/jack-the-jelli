@@ -14,21 +14,31 @@ import {
 
 interface ResetPasswordFormProps {
   token?: string;
+  linkError?: string;
 }
 
-export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
+export default function ResetPasswordForm({
+  token,
+  linkError,
+}: ResetPasswordFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
 
   if (!token) {
+    // INVALID_TOKEN is the only code this callback emits, and it covers
+    // expired and already-used alike — "malformed" is only right when the
+    // callback never ran and the URL simply carries no token at all.
+    const expired = linkError === "INVALID_TOKEN";
     return (
       <div className="mx-auto flex w-full max-w-md flex-col gap-6 text-center">
         <h1 className="font-heading text-3xl tracking-widest">
-          Invalid Reset Link
+          {expired ? "Link Expired" : "Invalid Reset Link"}
         </h1>
         <p className="text-muted-foreground text-sm">
-          This password reset link is missing or malformed. Request a new one.
+          {expired
+            ? "Reset links are valid for one hour and can only be used once. Request a new one to continue."
+            : "This password reset link is missing or malformed. Request a new one."}
         </p>
         <Button
           asChild
@@ -65,14 +75,22 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     setIsPending(false);
 
     if (resetError) {
+      // Better Auth consumes the token on the first successful reset, so a
+      // second submit comes back as INVALID_TOKEN — "invalid token" on its own
+      // reads like a bug rather than something the user can act on.
       setError(
-        resetError.message ??
-          "This link is invalid or has expired. Request a new one.",
+        resetError.code === "INVALID_TOKEN"
+          ? "This link has expired or has already been used. Request a new one."
+          : (resetError.message ??
+              "Couldn't reset your password. Please try again."),
       );
       return;
     }
 
-    router.push("/login");
+    // Reset does not sign the user in — send them to the form they now have a
+    // working password for, with an explicit confirmation rather than a bare
+    // login screen that looks like the reset silently failed.
+    router.push("/login?reset=1");
   }
 
   return (
@@ -85,7 +103,11 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           Reset Password
         </h1>
         {error && (
-          <p role="alert" className="text-destructive mt-4 text-sm" aria-live="polite">
+          <p
+            role="alert"
+            className="text-destructive mt-4 text-sm"
+            aria-live="polite"
+          >
             {error}
           </p>
         )}

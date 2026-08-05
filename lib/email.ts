@@ -2,7 +2,12 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-function renderEmailHtml(heading: string, bodyText: string, actionLabel: string, url: string) {
+function renderEmailHtml(
+  heading: string,
+  bodyText: string,
+  actionLabel: string,
+  url: string,
+) {
   return `
     <div style="font-family: Georgia, 'Times New Roman', serif; max-width: 480px; margin: 0 auto; padding: 40px 24px; color: #1a1a1a;">
       <h1 style="font-size: 20px; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 24px;">Jack The Jelli</h1>
@@ -46,12 +51,35 @@ async function sendAuthEmail({
     return;
   }
 
-  await resend.emails.send({
-    from: process.env.EMAIL_FROM!,
+  const from = process.env.EMAIL_FROM;
+  if (!process.env.RESEND_API_KEY || !from) {
+    throw new Error(
+      "Email is not configured — set RESEND_API_KEY and EMAIL_FROM.",
+    );
+  }
+
+  // The Resend SDK resolves with { data, error } rather than rejecting, so an
+  // unchecked `await` reports success for a 403 (sending domain not verified,
+  // or onboarding@resend.dev aimed at anyone but the account holder), a bad
+  // API key, or a quota trip. Better Auth then tells the user to check an
+  // inbox nothing was ever sent to, with nothing logged anywhere.
+  const { error } = await resend.emails.send({
+    from,
     to,
     subject,
     html: renderEmailHtml(heading, bodyText, actionLabel, url),
   });
+
+  if (error) {
+    console.error(
+      `[email] Resend rejected "${subject}" to ${to}: ${error.name} — ${error.message}`,
+    );
+    // Thrown, not swallowed: on the resend endpoints Better Auth awaits this
+    // directly and turns it into a client-visible error. On sign-up it runs as
+    // a background task, so this only reaches the server log — which is still
+    // the difference between a diagnosable failure and a silent one.
+    throw new Error(`Could not send email: ${error.message}`);
+  }
 }
 
 export async function sendVerificationEmail(to: string, url: string) {

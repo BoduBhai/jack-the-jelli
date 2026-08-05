@@ -16,23 +16,59 @@ import {
 
 type FieldErrors = Partial<Record<"email" | "password", string>>;
 
+/**
+ * Codes Better Auth's OAuth callback appends to errorCallbackURL, plus the
+ * ones Google itself sends back. Anything unmapped falls through to the
+ * generic message rather than surfacing a raw snake_case code.
+ *
+ * `account_not_linked` deliberately does NOT offer to connect Google:
+ * account.accountLinking is disabled in lib/auth.ts (§3.2), so there is no
+ * flow — implicit or manual — that would attach the provider afterwards.
+ */
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   account_not_linked:
-    "An account with this email already exists. Sign in with your password to connect Google.",
+    "This email is already registered with a password. Sign in with your email and password instead.",
+  email_not_found:
+    "Google didn't share an email address for that account. Sign in with your email and password instead.",
+  signup_disabled: "New accounts can't be created with Google right now.",
+  invalid_code: "Google sign-in expired before it completed. Try again.",
+  no_code: "Google sign-in expired before it completed. Try again.",
+  unable_to_get_user_info:
+    "We couldn't read your Google profile. Try again in a moment.",
+  unable_to_create_user:
+    "We couldn't create your account. Try again in a moment.",
+  unable_to_create_session:
+    "We couldn't start your session. Try again in a moment.",
+  internal_server_error: "Something went wrong on our end. Try again.",
 };
+
+// Google's own code for "user pressed Cancel on the consent screen". Not a
+// failure — showing it in red accuses the user of breaking something they
+// chose to do.
+const OAUTH_CANCELLED = new Set(["access_denied", "user_cancelled_login"]);
+
+function oauthErrorMessage(code: string | undefined) {
+  if (!code || OAUTH_CANCELLED.has(code)) return null;
+  return (
+    OAUTH_ERROR_MESSAGES[code] ?? "Google sign-in failed. Please try again."
+  );
+}
 
 interface LoginFormProps {
   oauthError?: string;
+  redirectTo: string;
+  passwordReset?: boolean;
 }
 
-export default function LoginForm({ oauthError }: LoginFormProps) {
+export default function LoginForm({
+  oauthError,
+  redirectTo,
+  passwordReset,
+}: LoginFormProps) {
   const router = useRouter();
   const [errors, setErrors] = useState<FieldErrors>({});
-  const [formError, setFormError] = useState<string | null>(
-    oauthError
-      ? (OAUTH_ERROR_MESSAGES[oauthError] ??
-          "Google sign-in failed. Please try again.")
-      : null,
+  const [formError, setFormError] = useState<string | null>(() =>
+    oauthErrorMessage(oauthError),
   );
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
   const [resendState, setResendState] = useState<"idle" | "pending" | "sent">(
@@ -80,11 +116,22 @@ export default function LoginForm({ oauthError }: LoginFormProps) {
         );
         return;
       }
+      if (error.code === "INVALID_EMAIL_OR_PASSWORD") {
+        // Better Auth returns the same code whether the address is unknown or
+        // the password is wrong, so the message must stay ambiguous too —
+        // splitting it would turn this form into an account-existence oracle.
+        setFormError("That email and password don't match an account.");
+        return;
+      }
+      if (error.status === 429) {
+        setFormError("Too many attempts. Wait a moment and try again.");
+        return;
+      }
       setFormError(error.message ?? "Sign in failed. Please try again.");
       return;
     }
 
-    router.push("/");
+    router.push(redirectTo);
     router.refresh();
   }
 
@@ -98,7 +145,8 @@ export default function LoginForm({ oauthError }: LoginFormProps) {
     if (error) {
       setResendState("idle");
       setFormError(
-        error.message ?? "Couldn't resend the email. Please try again.",
+        error.message ??
+          "Couldn't resend the email. Check your connection and try again.",
       );
       return;
     }
@@ -112,15 +160,26 @@ export default function LoginForm({ oauthError }: LoginFormProps) {
     >
       <header className="border-border border-b pb-6">
         <h1 className="font-heading text-3xl tracking-widest">Sign In</h1>
+        {passwordReset && !formError && (
+          <p className="mt-4 text-sm" aria-live="polite">
+            Password updated. Sign in with your new password.
+          </p>
+        )}
         {formError && (
-          <p role="alert" className="text-destructive mt-4 text-sm" aria-live="polite">
+          <p
+            role="alert"
+            className="text-destructive mt-4 text-sm"
+            aria-live="polite"
+          >
             {formError}
           </p>
         )}
         {unverifiedEmail && (
           <div className="mt-3">
             {resendState === "sent" ? (
-              <p className="text-sm">Verification email sent — check your inbox.</p>
+              <p className="text-sm">
+                Verification email sent — check your inbox.
+              </p>
             ) : (
               <button
                 type="button"
@@ -195,11 +254,14 @@ export default function LoginForm({ oauthError }: LoginFormProps) {
         <div className="border-border h-px flex-1 border-t" />
       </div>
 
-      <GoogleButton />
+      <GoogleButton callbackURL={redirectTo} />
 
       <p className="text-muted-foreground text-center text-sm">
         Don&apos;t have an account?{" "}
-        <Link href="/register" className="text-foreground underline underline-offset-4">
+        <Link
+          href="/register"
+          className="text-foreground underline underline-offset-4"
+        >
           Create one
         </Link>
       </p>

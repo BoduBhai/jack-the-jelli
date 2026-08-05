@@ -32,27 +32,43 @@ export default function ForgotPasswordForm() {
     }
 
     setIsPending(true);
-    // The server always returns success regardless of whether the email
-    // exists, to avoid leaking which addresses are registered — so this
-    // request can't fail in a way we should surface differently.
-    await authClient.requestPasswordReset({
+    // The server answers 200 whether or not the address is registered, so an
+    // error here is never about account existence — it's a transport failure,
+    // a 429, or a misconfigured server. Reporting "check your email" for those
+    // strands the user waiting on a message that was never sent.
+    const { error: requestError } = await authClient.requestPasswordReset({
       email: parsed.data.email,
       redirectTo: "/reset-password",
     });
     setIsPending(false);
+
+    if (requestError) {
+      setError(
+        requestError.status === 429
+          ? "Too many requests. Wait a moment and try again."
+          : "We couldn't send the reset link. Check your connection and try again.",
+      );
+      return;
+    }
+
     setSent(true);
   }
 
   if (sent) {
     return (
       <div className="mx-auto flex w-full max-w-md flex-col gap-6 text-center">
-        <h1 className="font-heading text-3xl tracking-widest">Check Your Email</h1>
+        <h1 className="font-heading text-3xl tracking-widest">
+          Check Your Email
+        </h1>
         <p className="text-muted-foreground text-sm">
           If an account exists for that address, we&apos;ve sent a link to reset
           your password.
         </p>
         <p className="text-muted-foreground text-sm">
-          <Link href="/login" className="text-foreground underline underline-offset-4">
+          <Link
+            href="/login"
+            className="text-foreground underline underline-offset-4"
+          >
             Back to sign in
           </Link>
         </p>
@@ -100,7 +116,10 @@ export default function ForgotPasswordForm() {
       </Button>
 
       <p className="text-muted-foreground text-center text-sm">
-        <Link href="/login" className="text-foreground underline underline-offset-4">
+        <Link
+          href="/login"
+          className="text-foreground underline underline-offset-4"
+        >
           Back to sign in
         </Link>
       </p>

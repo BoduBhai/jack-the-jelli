@@ -26,6 +26,10 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
+    // Password reset is the recovery path for an account someone else may
+    // already be inside; leaving their session alive (the default) defeats the
+    // point of resetting.
+    revokeSessionsOnPasswordReset: true,
     sendResetPassword: async ({ user, url }) => {
       await sendPasswordResetEmail(user.email, url);
     },

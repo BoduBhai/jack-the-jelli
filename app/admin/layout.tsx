@@ -8,7 +8,7 @@ export default async function AdminLayout({
 }) {
   // proxy.ts only redirects logged-out visitors (cookie presence, §3.4) — the
   // role check that turns away a logged-in customer has to happen here.
-  await requireAdmin();
+  await requireAdmin("/admin");
 
   return (
     <div className="bg-background text-foreground min-h-screen">

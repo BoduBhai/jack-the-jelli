@@ -18,6 +18,16 @@ type FieldErrors = Partial<
   Record<"name" | "email" | "password" | "phone", string>
 >;
 
+// Better Auth's own strings for these read as internal status ("Password too
+// short") rather than as something to do about it.
+const REGISTER_ERROR_MESSAGES: Record<string, string> = {
+  PASSWORD_TOO_SHORT: "Password must be at least 8 characters.",
+  PASSWORD_TOO_LONG: "That password is too long.",
+  INVALID_EMAIL: "Enter a valid email address.",
+  FAILED_TO_CREATE_USER:
+    "We couldn't create your account. Try again in a moment.",
+};
+
 export default function RegisterForm() {
   const router = useRouter();
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -60,7 +70,20 @@ export default function RegisterForm() {
     setIsPending(false);
 
     if (error) {
-      setFormError(error.message ?? "Registration failed. Please try again.");
+      // Note there is no "email already registered" branch to write: with
+      // requireEmailVerification on, Better Auth answers a duplicate sign-up
+      // with a normal success response and sends nothing, so sign-up can't be
+      // used to probe which addresses exist. VerifyEmailNotice carries the
+      // recovery hint for that case instead.
+      if (error.status === 429) {
+        setFormError("Too many attempts. Wait a moment and try again.");
+        return;
+      }
+      setFormError(
+        REGISTER_ERROR_MESSAGES[error.code ?? ""] ??
+          error.message ??
+          "Registration failed. Please try again.",
+      );
       return;
     }
 
@@ -80,7 +103,11 @@ export default function RegisterForm() {
           Create Account
         </h1>
         {formError && (
-          <p role="alert" className="text-destructive mt-4 text-sm" aria-live="polite">
+          <p
+            role="alert"
+            className="text-destructive mt-4 text-sm"
+            aria-live="polite"
+          >
             {formError}
           </p>
         )}
@@ -171,7 +198,10 @@ export default function RegisterForm() {
 
       <p className="text-muted-foreground text-center text-sm">
         Already have an account?{" "}
-        <Link href="/login" className="text-foreground underline underline-offset-4">
+        <Link
+          href="/login"
+          className="text-foreground underline underline-offset-4"
+        >
           Sign in
         </Link>
       </p>

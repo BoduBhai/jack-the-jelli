@@ -98,7 +98,11 @@ export default function AccountForm({
       <header className="border-border border-b pb-6">
         <h1 className="font-heading text-3xl tracking-widest">Account</h1>
         {formError && (
-          <p role="alert" className="text-destructive mt-4 text-sm" aria-live="polite">
+          <p
+            role="alert"
+            className="text-destructive mt-4 text-sm"
+            aria-live="polite"
+          >
             {formError}
           </p>
         )}

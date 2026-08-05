@@ -11,26 +11,50 @@ import {
   fieldLabelClassName,
 } from "@/features/auth/lib/auth-form";
 
+/**
+ * Better Auth redirects here with `?error=<BASE_ERROR_CODES key>` when the
+ * verify-email endpoint rejects a token. Only these three are reachable —
+ * anything else falls back to the generic copy rather than showing a raw code.
+ */
+const VERIFY_ERRORS: Record<string, { heading: string; body: string }> = {
+  TOKEN_EXPIRED: {
+    heading: "Link Expired",
+    body: "Verification links are valid for one hour. Enter your email and we'll send a fresh one.",
+  },
+  INVALID_TOKEN: {
+    heading: "Invalid Link",
+    body: "That link is malformed or has already been used. Enter your email to get a new one.",
+  },
+  USER_NOT_FOUND: {
+    heading: "Account Not Found",
+    body: "We couldn't find an account for that link. It may have been removed — create a new account to continue.",
+  },
+};
+
+const GENERIC_ERROR = {
+  heading: "Verification Failed",
+  body: "We couldn't verify that link. Enter your email and we'll send a new one.",
+};
+
 interface VerifyEmailNoticeProps {
   email?: string;
   error?: string;
+  verified: boolean;
 }
 
 export default function VerifyEmailNotice({
   email: initialEmail,
   error,
+  verified,
 }: VerifyEmailNoticeProps) {
-  const { data: session } = authClient.useSession();
   const [email, setEmail] = useState(initialEmail ?? "");
   const [sent, setSent] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const isVerified = session?.user?.emailVerified === true;
-
   async function handleResend(event: React.FormEvent) {
     event.preventDefault();
-    if (!email) {
+    if (!email.trim()) {
       setFormError("Enter your email to resend the link.");
       return;
     }
@@ -38,7 +62,7 @@ export default function VerifyEmailNotice({
     setFormError(null);
 
     const { error: resendError } = await authClient.sendVerificationEmail({
-      email,
+      email: email.trim(),
       callbackURL: "/verify-email",
     });
 
@@ -46,7 +70,8 @@ export default function VerifyEmailNotice({
 
     if (resendError) {
       setFormError(
-        resendError.message ?? "Couldn't resend the email. Try again.",
+        resendError.message ??
+          "Couldn't resend the email. Check your connection and try again.",
       );
       return;
     }
@@ -54,7 +79,7 @@ export default function VerifyEmailNotice({
     setSent(true);
   }
 
-  if (isVerified) {
+  if (verified) {
     return (
       <div className="mx-auto flex w-full max-w-md flex-col gap-6 text-center">
         <h1 className="font-heading text-3xl tracking-widest">
@@ -73,14 +98,16 @@ export default function VerifyEmailNotice({
     );
   }
 
+  const failure = error ? (VERIFY_ERRORS[error] ?? GENERIC_ERROR) : null;
+
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-6 text-center">
       <h1 className="font-heading text-3xl tracking-widest">
-        {error ? "Link Expired" : "Check Your Email"}
+        {failure ? failure.heading : "Check Your Email"}
       </h1>
       <p className="text-muted-foreground text-sm">
-        {error
-          ? "That verification link is invalid or has expired. Enter your email to get a new one."
+        {failure
+          ? failure.body
           : initialEmail
             ? `We sent a verification link to ${initialEmail}. Click it to activate your account.`
             : "We sent a verification link to your email. Click it to activate your account."}
@@ -90,9 +117,12 @@ export default function VerifyEmailNotice({
         <p className="text-sm">Verification email sent — check your inbox.</p>
       ) : (
         <form onSubmit={handleResend} className="flex flex-col gap-4 text-left">
-          {(error || !initialEmail) && (
+          {(failure || !initialEmail) && (
             <Field>
-              <FieldLabel htmlFor="resend-email" className={fieldLabelClassName}>
+              <FieldLabel
+                htmlFor="resend-email"
+                className={fieldLabelClassName}
+              >
                 Email
               </FieldLabel>
               <Input
@@ -120,8 +150,35 @@ export default function VerifyEmailNotice({
         </form>
       )}
 
+      {/* Registering with an address that already has an account returns a
+          success response and sends nothing — Better Auth does that on purpose
+          so sign-up can't be used to probe which emails are registered. That
+          leaves this screen as the dead end unless it says so. */}
+      {!failure && (
+        <p className="text-muted-foreground text-sm">
+          Nothing arriving? This address may already have an account —{" "}
+          <Link
+            href="/login"
+            className="text-foreground underline underline-offset-4"
+          >
+            sign in
+          </Link>{" "}
+          or{" "}
+          <Link
+            href="/forgot-password"
+            className="text-foreground underline underline-offset-4"
+          >
+            reset your password
+          </Link>
+          .
+        </p>
+      )}
+
       <p className="text-muted-foreground text-sm">
-        <Link href="/login" className="text-foreground underline underline-offset-4">
+        <Link
+          href="/login"
+          className="text-foreground underline underline-offset-4"
+        >
           Back to sign in
         </Link>
       </p>

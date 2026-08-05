@@ -4,7 +4,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 
-export default function GoogleButton() {
+interface GoogleButtonProps {
+  /** Already narrowed by safeRedirectPath — Better Auth rejects off-origin. */
+  callbackURL?: string;
+}
+
+export default function GoogleButton({ callbackURL = "/" }: GoogleButtonProps) {
   const [isPending, setIsPending] = useState(false);
 
   async function handleClick() {
@@ -14,7 +19,7 @@ export default function GoogleButton() {
     // errorCallbackURL with ?error=<code> instead of rejecting this call.
     await authClient.signIn.social({
       provider: "google",
-      callbackURL: "/",
+      callbackURL,
       errorCallbackURL: "/login",
     });
   }

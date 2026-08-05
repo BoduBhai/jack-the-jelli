@@ -16,15 +16,32 @@ export async function getSession() {
   return auth.api.getSession({ headers: await headers() });
 }
 
-export async function requireAuth() {
+/**
+ * `intendedPath` exists because proxy.ts only sees the session *cookie*. A
+ * revoked or expired session still carries one, so the request sails past the
+ * proxy and dies here instead — and without this the user is dropped on /login
+ * having silently lost where they were going. Server Components have no way to
+ * read their own pathname, so the caller supplies it.
+ */
+function loginPath(intendedPath?: string) {
+  if (!intendedPath) return "/login";
+  return `/login?redirect=${encodeURIComponent(intendedPath)}`;
+}
+
+export async function requireAuth(intendedPath?: string) {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) redirect(loginPath(intendedPath));
   return session;
 }
 
-export async function requireAdmin() {
+export async function requireAdmin(intendedPath?: string) {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) redirect(loginPath(intendedPath));
+
+  // new ObjectId() throws BSONError on anything that isn't 24 hex characters,
+  // which would surface as a 500 from a guard whose whole job is to answer
+  // yes/no. Treat an unparseable id the same as a non-admin.
+  if (!ObjectId.isValid(session.user.id)) redirect("/");
 
   const users = await getUsersCollection();
   // §3.3: role is re-read from the database on every call, never trusted from
