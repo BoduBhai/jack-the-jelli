@@ -85,11 +85,10 @@ export default function UserMenu() {
   // OAuth profile that carried none), which used to render an empty circle.
   const fallback = initials(user.name) || user.email.trim()[0]?.toUpperCase();
 
-  // Not modal: Radix's modal scroll-lock removes the page scrollbar, which
-  // widens the viewport and shifts the fixed navbar 15px. Reserving the gutter
-  // globally (scrollbar-gutter: stable) only moves that jump onto the page
-  // content instead. A nav menu needs neither a focus trap nor an inert
-  // background, so the lock buys nothing here.
+  // Not modal: a nav menu needs neither a focus trap nor an inert background,
+  // so Radix's modal scroll-lock buys nothing here and only costs the page its
+  // scrollbar. (The navbar shift that lock causes elsewhere is handled by
+  // scrollbar-lock-safe in globals.css, not by this prop.)
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>

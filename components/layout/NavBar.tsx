@@ -20,7 +20,10 @@ export default function NavBar() {
 
   return (
     <nav
-      className={`border-border fixed inset-x-0 top-0 z-50 h-24 border-b transition-all duration-500 ${
+      // Naming the two transitioned properties rather than transition-all is
+      // load-bearing: all would animate scrollbar-lock-safe's margin over 500ms
+      // while the scrollbar vanishes instantly, trading the jump for a drift.
+      className={`border-border scrollbar-lock-safe fixed inset-x-0 top-0 z-50 h-24 border-b transition-[background-color,backdrop-filter] duration-500 ${
         scrolled ? "bg-background/60 backdrop-blur-md" : "bg-transparent"
       }`}
     >

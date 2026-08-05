@@ -172,6 +172,16 @@
   }
 }
 
+/* react-remove-scroll (Radix Select/Dialog/Sheet) hides the page scrollbar
+   while an overlay is open, widening the viewport by the scrollbar's width.
+   It compensates normal-flow content via margin-right on <body>, but
+   position:fixed elements lay out against the viewport and miss that, so a
+   full-bleed fixed bar visibly stretches. This opts them in. The variable is
+   set on <body> only during a lock — the 0px fallback makes it inert. */
+@utility scrollbar-lock-safe {
+  margin-right: var(--removed-body-scroll-bar-size, 0px);
+}
+
 /* Skeleton is a shared primitive (components/ui/skeleton.tsx) whose
    animate-pulse doesn't respect prefers-reduced-motion on its own, and it's
    used in places a motion-safe: variant at the call site can't reach. */
