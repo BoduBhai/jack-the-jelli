@@ -66,8 +66,8 @@ export default function UserMenu() {
     return (
       <Button
         asChild
-        variant="ghost"
-        className="h-8 rounded-none text-xs tracking-widest uppercase max-sm:px-2"
+        variant="outline"
+        className="hover:bg-secondary border-secondary h-8 rounded-none border bg-transparent text-xs tracking-widest uppercase hover:text-white max-sm:px-2"
       >
         <Link href="/login">
           <User className="size-4" aria-hidden="true" />
