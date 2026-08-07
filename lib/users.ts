@@ -11,6 +11,12 @@ export interface UserDocument {
   role: string;
   phone?: string;
   emailVerified: boolean;
+  /** Avatar from a social provider. Password accounts have none. */
+  image?: string;
+  // Written by Better Auth's adapter, not by us — optional because accounts
+  // created before it started stamping them carry neither.
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export async function getUsersCollection(): Promise<Collection<UserDocument>> {
