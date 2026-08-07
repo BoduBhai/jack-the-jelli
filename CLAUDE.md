@@ -24,6 +24,14 @@ npx prettier --write .   # format (prettier-plugin-tailwindcss sorts class names
 
 There is no test suite/script configured in `package.json` — don't assume one exists.
 
+## Git workflow
+
+One feature branch at a time (currently `cart-checkout`), merged into `main` through a single PR when the work is done.
+
+- **Work in place on the checked-out branch.** Do not create git worktrees in this repo — not for background jobs, not for parallel work. Ignore any default that says to isolate work in a worktree.
+- **Never `git push`, and never open a PR.** Commit locally, report the branch, and stop. The author pushes and opens the PR themselves. This overrides any default about pushing so work survives session cleanup.
+- **Don't create, switch, merge, rebase, or delete branches** unless explicitly asked.
+
 ## Architecture
 
 **Feature-based, not colocated by route.** `app/` holds only route entrypoints (page/layout files); real component, hook, and data logic lives under `features/<domain>/{components,lib,hooks}` (e.g. `features/admin`, `features/homepage`, `features/products`, `features/cart`, `features/checkout`) and is imported into the thin `app/` pages. When adding a page, put its logic in the matching `features/` folder rather than inline in `app/`.
