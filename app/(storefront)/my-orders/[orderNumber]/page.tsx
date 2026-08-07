@@ -6,6 +6,7 @@ import { requireAuth } from "@/lib/auth-guard";
 import OrderReceipt from "@/features/orders/components/OrderReceipt";
 import OrderTimeline from "@/features/orders/components/OrderTimeline";
 import { getOrderForUser } from "@/features/orders/lib/orders";
+import { PAYMENT_STATUS_COPY } from "@/features/orders/lib/order-status";
 
 export const metadata: Metadata = {
   title: "Order | Jack The Jelli",
@@ -58,9 +59,7 @@ export default async function MyOrderDetailPage({
             Payment
           </p>
           <p className="text-foreground mt-1 text-[15px]">
-            {order.paymentStatus === "collected"
-              ? "Collected"
-              : "Cash on delivery"}
+            {PAYMENT_STATUS_COPY[order.paymentStatus].customer}
           </p>
         </div>
       </header>

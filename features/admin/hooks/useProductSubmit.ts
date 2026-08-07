@@ -1,6 +1,12 @@
 "use client";
 
-import { startTransition, useCallback, useEffect, useRef, useState } from "react";
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import type { ZodType } from "zod";
 import type { ProductMediaUploaderHandle } from "@/features/admin/components/ProductMediaUploader";
@@ -127,7 +133,9 @@ export function useProductSubmit({
         setIsUploading(false);
         toastIdRef.current = undefined;
         toast.error(
-          error instanceof Error ? error.message : "Could not save this product.",
+          error instanceof Error
+            ? error.message
+            : "Could not save this product.",
           { id: toastId },
         );
         return;

@@ -108,6 +108,7 @@ export async function getOrders({
     Shipped: 0,
     Delivered: 0,
     Cancelled: 0,
+    Returned: 0,
   } as Record<AdminSettableStatus | "all", number>;
 
   for (const row of grouped) {

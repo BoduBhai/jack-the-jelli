@@ -62,6 +62,8 @@ export function toOrderDTO(order: LeanOrder): OrderDTO {
     shippedAt: iso(order.shippedAt),
     deliveredAt: iso(order.deliveredAt),
     cancelledAt: iso(order.cancelledAt),
+    returnedAt: iso(order.returnedAt),
+    paymentUpdatedAt: iso(order.paymentUpdatedAt),
     statusHistory: (order.statusHistory ?? []).map((entry) => ({
       status: entry.status,
       at: entry.at.toISOString(),

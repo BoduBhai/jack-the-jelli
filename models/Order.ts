@@ -79,11 +79,23 @@ export interface IOrder {
   stockCommittedAt?: Date;
   /** Set exactly once, by whichever cancel wins the race. */
   stockRestoredAt?: Date;
+  /**
+   * Each stamps the *first* time the order reached that state. Statuses can be
+   * moved backwards to fix a mis-click, and re-entering a state must not
+   * rewrite when it was originally reached — statusHistory carries the full
+   * trail, these carry the milestone.
+   */
   placedAt?: Date;
   confirmedAt?: Date;
   shippedAt?: Date;
   deliveredAt?: Date;
   cancelledAt?: Date;
+  returnedAt?: Date;
+  /**
+   * When an admin last set paymentStatus. Payment no longer follows from the
+   * delivery timeline, so without this there's no record of when it settled.
+   */
+  paymentUpdatedAt?: Date;
   statusHistory: IOrderStatusEntry[];
   createdAt?: Date;
   updatedAt?: Date;
@@ -164,6 +176,8 @@ const orderSchema = new Schema<IOrder>(
     shippedAt: { type: Date },
     deliveredAt: { type: Date },
     cancelledAt: { type: Date },
+    returnedAt: { type: Date },
+    paymentUpdatedAt: { type: Date },
     statusHistory: { type: [statusEntrySchema], default: [] },
   },
   { timestamps: true },

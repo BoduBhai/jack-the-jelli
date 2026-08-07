@@ -29,7 +29,9 @@ function revalidateCategoryConsumers() {
  * "Bifold Wallet" is a mistake, not a new category, so the unique index rejects
  * it and we translate that into a field message.
  */
-function duplicateCategoryErrors(error: unknown): Record<string, string> | null {
+function duplicateCategoryErrors(
+  error: unknown,
+): Record<string, string> | null {
   const fields = getDuplicateKeyFields(error);
   if (fields.length === 0) return null;
   return { name: "A category with this name already exists" };

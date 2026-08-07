@@ -8,6 +8,7 @@ import OrderReceipt from "@/features/orders/components/OrderReceipt";
 import OrderTimeline from "@/features/orders/components/OrderTimeline";
 import { lookupOrder } from "@/features/orders/lib/track-actions";
 import { emptyTrackState } from "@/features/orders/lib/track-state";
+import { PAYMENT_STATUS_COPY } from "@/features/orders/lib/order-status";
 import {
   fieldLabelClassName,
   underlineInputClassName,
@@ -113,9 +114,7 @@ export default function TrackOrderForm({
                 Payment
               </p>
               <p className="text-foreground mt-1 text-[15px]">
-                {state.order.paymentStatus === "collected"
-                  ? "Collected"
-                  : "Cash on delivery"}
+                {PAYMENT_STATUS_COPY[state.order.paymentStatus].customer}
               </p>
             </div>
           </div>

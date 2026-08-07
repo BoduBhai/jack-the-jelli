@@ -61,6 +61,8 @@ export interface OrderDTO {
   shippedAt?: string;
   deliveredAt?: string;
   cancelledAt?: string;
+  returnedAt?: string;
+  paymentUpdatedAt?: string;
   statusHistory: OrderStatusEntryDTO[];
   createdAt: string;
   updatedAt: string;

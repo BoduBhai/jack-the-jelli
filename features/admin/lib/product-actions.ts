@@ -329,7 +329,10 @@ export async function archiveProduct(
     }
   } catch (error) {
     console.error("archiveProduct failed", error);
-    return { ok: false, message: "Something went wrong while archiving this product." };
+    return {
+      ok: false,
+      message: "Something went wrong while archiving this product.",
+    };
   }
 
   revalidatePath("/admin/products");
@@ -363,7 +366,10 @@ export async function restoreProduct(
     }
   } catch (error) {
     console.error("restoreProduct failed", error);
-    return { ok: false, message: "Something went wrong while restoring this product." };
+    return {
+      ok: false,
+      message: "Something went wrong while restoring this product.",
+    };
   }
 
   revalidatePath("/admin/products");

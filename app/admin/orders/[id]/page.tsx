@@ -154,7 +154,7 @@ export default async function AdminOrderDetailPage({
           <section className="border-border space-y-6 border p-6">
             <div>
               <h2 className="text-foreground text-sm font-semibold tracking-widest uppercase">
-                Financial &amp; Status
+                Delivery &amp; Payment
               </h2>
               <div className="bg-border mt-2 h-px w-16" />
             </div>
@@ -163,6 +163,7 @@ export default async function AdminOrderDetailPage({
               orderNumber={order.orderNumber}
               status={order.status}
               paymentStatus={order.paymentStatus}
+              unitCount={unitCount}
             />
           </section>
 

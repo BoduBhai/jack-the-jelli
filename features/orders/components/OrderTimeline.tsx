@@ -29,23 +29,39 @@ function formatStamp(iso: string | undefined) {
 /**
  * The vertical progress rail on /track, newest step at the top.
  *
- * A cancelled order doesn't advance through the steps, so it gets its own
- * notice rather than a rail frozen at whatever stage it died in.
+ * Cancelled and Returned both stop the timeline rather than advancing through
+ * it, so each gets its own notice instead of a rail frozen at whatever stage
+ * the order left the sequence at.
  */
 export default function OrderTimeline({ order }: { order: OrderDTO }) {
-  if (order.status === "Cancelled") {
+  if (order.status === "Cancelled" || order.status === "Returned") {
+    const cancelled = order.status === "Cancelled";
+    const stamp = formatStamp(cancelled ? order.cancelledAt : order.returnedAt);
+
     return (
-      <div className="border-destructive/40 bg-destructive/5 border p-6">
-        <p className="text-destructive text-[12px] font-semibold tracking-[0.1em] uppercase">
-          Cancelled
+      <div
+        className={
+          cancelled
+            ? "border-destructive/40 bg-destructive/5 border p-6"
+            : "border-outline-variant/40 bg-surface-container-low/40 border p-6"
+        }
+      >
+        <p
+          className={`text-[12px] font-semibold tracking-[0.1em] uppercase ${
+            cancelled ? "text-destructive" : "text-on-surface-variant"
+          }`}
+        >
+          {ORDER_STATUS_COPY[order.status].label}
         </p>
         <p className="text-on-surface-variant mt-2 text-[15px] leading-relaxed">
-          {ORDER_STATUS_COPY.Cancelled.description} If this is a surprise,
-          please call us — nothing has been charged.
+          {ORDER_STATUS_COPY[order.status].description}{" "}
+          {cancelled
+            ? "If this is a surprise, please call us — nothing has been charged."
+            : "If you're expecting a refund and haven't had it, please call us."}
         </p>
-        {formatStamp(order.cancelledAt) && (
+        {stamp && (
           <p className="text-on-surface-variant mt-3 text-[12px] font-semibold tracking-[0.1em] uppercase">
-            {formatStamp(order.cancelledAt)}
+            {stamp}
           </p>
         )}
       </div>

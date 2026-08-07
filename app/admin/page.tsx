@@ -24,7 +24,7 @@ const TABLE_HEADERS = [
   "Order",
   "Client",
   "Value",
-  "Fulfilment",
+  "Delivery",
   "Action",
 ] as const;
 

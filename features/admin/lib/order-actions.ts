@@ -10,18 +10,21 @@ import { STALE_DRAFT_MINUTES } from "@/features/admin/lib/orders";
 import { ORDER_NUMBER_PATTERN } from "@/features/orders/lib/order-number";
 import {
   ADMIN_SETTABLE_STATUSES,
+  PAYMENT_STATUS_COPY,
+  PAYMENT_STATUSES,
   predecessorsOf,
   type AdminSettableStatus,
   type OrderStatus,
 } from "@/features/orders/lib/order-status";
 
-/** Which timestamp each status stamps when it's reached. */
+/** Which timestamp each status stamps the first time it's reached. */
 const STATUS_TIMESTAMP: Record<AdminSettableStatus, string> = {
   Pending: "placedAt",
   Confirmed: "confirmedAt",
   Shipped: "shippedAt",
   Delivered: "deliveredAt",
   Cancelled: "cancelledAt",
+  Returned: "returnedAt",
 };
 
 const statusInputSchema = z.object({
@@ -41,23 +44,40 @@ const orderNumberSchema = z.object({
     .regex(ORDER_NUMBER_PATTERN, "Unknown order"),
 });
 
+const paymentInputSchema = z.object({
+  orderNumber: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(ORDER_NUMBER_PATTERN, "Unknown order"),
+  paymentStatus: z.enum(PAYMENT_STATUSES),
+});
+
 function revalidateOrder(orderNumber: string) {
   revalidatePath("/admin");
   revalidatePath(`/admin/orders/${orderNumber}`);
   revalidatePath("/my-orders");
 }
 
+/** The optional operator note carried by the cancel and return dialogs. */
+function readNote(formData: FormData): string | undefined {
+  const raw = formData.get("note");
+  if (typeof raw !== "string") return undefined;
+  return raw.trim().slice(0, 200) || undefined;
+}
+
 /**
- * Advance an order along the state machine.
+ * Move an order to another status.
  *
  * The legal predecessors go in the **query filter**, not into a JavaScript
  * check: `findOneAndUpdate` with `{status: {$in: predecessorsOf(to)}}` reads
  * and writes as one atomic operation, so two admins clicking "Shipped" at the
  * same moment produce one transition and one history entry. A
- * read-then-check-then-write could not.
+ * read-then-check-then-write could not. That still holds now the table admits
+ * backward edges — the filter just matches a wider set.
  *
- * Cancelling is routed to cancelOrder() because it also has to give the stock
- * back, which no other transition does.
+ * Cancelling and returning are routed away because each also has to settle the
+ * stock, which no ordinary move does.
  */
 export async function updateOrderStatus(
   _prevState: AdminFormState,
@@ -76,25 +96,38 @@ export async function updateOrderStatus(
 
   const { orderNumber, status } = parsed.data;
   if (status === "Cancelled") return cancelOrder(_prevState, formData);
+  if (status === "Returned") return returnOrder(_prevState, formData);
 
   try {
     await connectDB();
 
     const at = new Date();
+    const stamp = STATUS_TIMESTAMP[status];
     const updated = await Order.findOneAndUpdate(
       { orderNumber, status: { $in: predecessorsOf(status) } },
-      {
-        $set: {
-          status,
-          [STATUS_TIMESTAMP[status]]: at,
-          // Delivered is the moment the courier hands over the goods and takes
-          // the cash — the two are the same event, so they're the same write.
-          ...(status === "Delivered" ? { paymentStatus: "collected" } : {}),
+      // A pipeline rather than a plain update, so the milestone timestamp can
+      // depend on its own current value. Payment is untouched on purpose: it's
+      // set by hand now, and Delivered no longer implies collected.
+      [
+        {
+          $set: {
+            status,
+            // First reach wins. Statuses move backwards to undo a mis-click,
+            // and re-entering a stage must not rewrite when the order
+            // originally got there — statusHistory keeps the full trail.
+            [stamp]: { $ifNull: [`$${stamp}`, at] },
+            statusHistory: {
+              $concatArrays: [
+                { $ifNull: ["$statusHistory", []] },
+                [{ status, at }],
+              ],
+            },
+          },
         },
-        $push: { statusHistory: { status, at } },
-      },
-      // `new` is deprecated in Mongoose 9 in favour of returnDocument.
-      { returnDocument: "after" },
+      ],
+      // `new` is deprecated in Mongoose 9 in favour of returnDocument, and
+      // Mongoose 9 refuses an array update unless updatePipeline is declared.
+      { returnDocument: "after", updatePipeline: true },
     )
       .select("status")
       .lean<{ status: OrderStatus } | null>();
@@ -128,8 +161,10 @@ export async function updateOrderStatus(
  * `stockRestoredAt: null` is in the filter, so of two concurrent cancels only
  * one can match and only one restores. The status update itself is an
  * aggregation-pipeline update: every expression inside it sees the document as
- * it was *before* the write, which is what lets paymentStatus depend on the
- * status being replaced in the same operation.
+ * it was *before* the write, which is what lets statusHistory be appended to
+ * in the same operation that replaces the status.
+ *
+ * Cancelling says nothing about the money — see updatePaymentStatus.
  */
 export async function cancelOrder(
   _prevState: AdminFormState,
@@ -145,10 +180,7 @@ export async function cancelOrder(
   }
 
   const { orderNumber } = parsed.data;
-  const note =
-    typeof formData.get("note") === "string"
-      ? String(formData.get("note")).trim().slice(0, 200) || undefined
-      : undefined;
+  const note = readNote(formData);
 
   try {
     await connectDB();
@@ -168,11 +200,9 @@ export async function cancelOrder(
             status: "Cancelled",
             cancelledAt: at,
             stockRestoredAt: at,
-            // Cancelled after it shipped means the courier came back with the
-            // goods and no cash; anything earlier was never going to be paid.
-            paymentStatus: {
-              $cond: [{ $eq: ["$status", "Shipped"] }, "failed", "pending"],
-            },
+            // paymentStatus is deliberately not written. Whether the courier
+            // came back with cash is the operator's call, not something to
+            // infer from the status this order happened to die in.
             statusHistory: {
               $concatArrays: [
                 { $ifNull: ["$statusHistory", []] },
@@ -227,6 +257,156 @@ export async function cancelOrder(
   revalidateOrder(orderNumber);
   revalidatePath("/collection");
   return { ok: true, message: "Order cancelled and stock returned." };
+}
+
+/**
+ * Close an order that came back — from the courier, or from the customer after
+ * delivery.
+ *
+ * Whether the goods rejoin sellable stock is the caller's decision, not a rule:
+ * a piece returned because it was defective belongs in the workshop, while one
+ * returned because the customer changed their mind belongs back on the shelf.
+ * That's the whole reason this isn't just a Cancelled with a note — cancelling
+ * always restocks.
+ *
+ * The restock branch reuses cancelOrder's exactly-once guarantee, by putting
+ * `stockRestoredAt: null` in the filter. A return that *doesn't* restock must
+ * leave that guard unclaimed, since its units stay committed.
+ */
+export async function returnOrder(
+  _prevState: AdminFormState,
+  formData: FormData,
+): Promise<AdminFormState> {
+  await requireAdmin();
+
+  const parsed = orderNumberSchema.safeParse({
+    orderNumber: formData.get("orderNumber"),
+  });
+  if (!parsed.success) {
+    return { ok: false, message: "That order no longer exists." };
+  }
+
+  const { orderNumber } = parsed.data;
+  const note = readNote(formData);
+  const restock = formData.get("restock") === "on";
+
+  try {
+    await connectDB();
+
+    const at = new Date();
+    // The pre-update document still carries the items to restore.
+    const previous = await Order.findOneAndUpdate(
+      {
+        orderNumber,
+        status: { $in: predecessorsOf("Returned") },
+        ...(restock ? { stockRestoredAt: null } : {}),
+      },
+      [
+        {
+          $set: {
+            status: "Returned",
+            returnedAt: at,
+            ...(restock ? { stockRestoredAt: at } : {}),
+            statusHistory: {
+              $concatArrays: [
+                { $ifNull: ["$statusHistory", []] },
+                [{ status: "Returned", at, ...(note ? { note } : {}) }],
+              ],
+            },
+          },
+        },
+      ],
+      { returnDocument: "before", updatePipeline: true },
+    ).lean<{ items: IOrderItem[]; status: OrderStatus } | null>();
+
+    if (!previous) {
+      const current = await Order.findOne({ orderNumber })
+        .select("status")
+        .lean<{ status: OrderStatus } | null>();
+
+      if (!current)
+        return { ok: false, message: "That order no longer exists." };
+      return {
+        ok: false,
+        message:
+          current.status === "Returned"
+            ? "This order is already marked returned."
+            : `A ${current.status} order can't be returned — only a shipped or delivered one can.`,
+      };
+    }
+
+    // Only reached by the single caller that won the filter above.
+    if (restock && previous.items.length > 0) {
+      await Product.bulkWrite(
+        previous.items.map((item) => ({
+          updateOne: {
+            filter: { _id: item.product },
+            update: { $inc: { stock: item.qty } },
+          },
+        })),
+      );
+    }
+  } catch (error) {
+    console.error("returnOrder failed", error);
+    return { ok: false, message: "Something went wrong returning this order." };
+  }
+
+  revalidateOrder(orderNumber);
+  if (restock) revalidatePath("/collection");
+  return {
+    ok: true,
+    message: restock
+      ? "Order returned and stock restored."
+      : "Order returned. Stock left unchanged.",
+  };
+}
+
+/**
+ * Set the payment outcome by hand.
+ *
+ * Deliberately free of any state machine. Cash on delivery doesn't settle on a
+ * schedule the order status can predict — a courier can hand over the goods and
+ * come back short, and a refund happens days after Delivered — so any value is
+ * reachable at any time, and nothing else in this file writes the field.
+ */
+export async function updatePaymentStatus(
+  _prevState: AdminFormState,
+  formData: FormData,
+): Promise<AdminFormState> {
+  await requireAdmin();
+
+  const parsed = paymentInputSchema.safeParse({
+    orderNumber: formData.get("orderNumber"),
+    paymentStatus: formData.get("paymentStatus"),
+  });
+  if (!parsed.success) {
+    return { ok: false, message: "That payment status isn't valid." };
+  }
+
+  const { orderNumber, paymentStatus } = parsed.data;
+
+  try {
+    await connectDB();
+
+    // Draft is the in-flight stock claim, not an order anyone collects on.
+    const result = await Order.updateOne(
+      { orderNumber, status: { $ne: "Draft" } },
+      { $set: { paymentStatus, paymentUpdatedAt: new Date() } },
+    );
+
+    if (result.matchedCount === 0) {
+      return { ok: false, message: "That order no longer exists." };
+    }
+  } catch (error) {
+    console.error("updatePaymentStatus failed", error);
+    return { ok: false, message: "Something went wrong updating this order." };
+  }
+
+  revalidateOrder(orderNumber);
+  return {
+    ok: true,
+    message: `Payment marked "${PAYMENT_STATUS_COPY[paymentStatus].admin}".`,
+  };
 }
 
 /**

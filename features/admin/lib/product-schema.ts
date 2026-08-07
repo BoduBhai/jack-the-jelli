@@ -83,10 +83,7 @@ export const createProductSchema = z.object({
     .min(3, "SKU is required")
     .max(16, "SKU cannot exceed 16 characters")
     .transform((value) => value.toUpperCase()),
-  category: z
-    .string()
-    .trim()
-    .regex(OBJECT_ID_PATTERN, "Select a category"),
+  category: z.string().trim().regex(OBJECT_ID_PATTERN, "Select a category"),
   price: numberField("Price"),
   stock: optionalNumberField("Stock", 0),
   description: z
