@@ -21,6 +21,10 @@ export function proxy(request: NextRequest) {
   return NextResponse.redirect(loginUrl);
 }
 
+// /checkout is deliberately absent: checkout is guest-first. Requiring an
+// account there would be fatal, because Better Auth requires email
+// verification before sign-in — a new customer literally could not finish an
+// order in one sitting.
 export const config = {
-  matcher: ["/account/:path*", "/checkout", "/admin/:path*"],
+  matcher: ["/account/:path*", "/my-orders/:path*", "/admin/:path*"],
 };

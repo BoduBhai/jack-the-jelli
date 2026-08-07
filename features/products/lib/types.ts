@@ -7,6 +7,8 @@ export interface Product {
   price: number;
   thumbnail?: string;
   category: string;
+  /** Earns its place: the card's add-to-cart button needs it to seed the line. */
+  stock: number;
 }
 
 /** One image on the detail page. Mirrors IProductImage without the Mongoose types. */

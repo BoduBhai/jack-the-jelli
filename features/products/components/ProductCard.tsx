@@ -76,7 +76,7 @@ export default function ProductCard({
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-2">
-        <AddToCartButton productName={product.name} />
+        <AddToCartButton product={product} />
         <Link
           href={href}
           className="border-secondary text-foreground hover:bg-secondary hover:text-background inline-flex items-center justify-center rounded-none border bg-transparent px-3 py-3 text-[12px] font-semibold tracking-widest uppercase transition-colors duration-300"

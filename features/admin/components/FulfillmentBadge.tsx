@@ -1,12 +1,12 @@
-import type { FulfillmentStatus } from "@/features/admin/lib/types";
+import type { OrderStatus } from "@/features/admin/lib/types";
 import { AlertCircle } from "lucide-react";
 
 interface FulfillmentBadgeProps {
-  status: FulfillmentStatus;
+  status: OrderStatus;
 }
 
 const STATUS_CONFIG: Record<
-  FulfillmentStatus,
+  OrderStatus,
   {
     label: string;
     dotColor: string;
@@ -15,6 +15,15 @@ const STATUS_CONFIG: Record<
     textColor: string;
   }
 > = {
+  // Every admin query filters Draft out, so this only exists to keep the map
+  // total — a Draft on screen would mean a placement crashed mid-flight.
+  Draft: {
+    label: "Draft",
+    dotColor: "border border-muted-foreground",
+    borderColor: "border-border border-dashed",
+    bgColor: "bg-muted",
+    textColor: "text-muted-foreground",
+  },
   Pending: {
     label: "Pending",
     dotColor: "border border-foreground",

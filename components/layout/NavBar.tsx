@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import Logo from "@/components/layout/Logo";
 import UserMenu from "@/components/layout/UserMenu";
+import CartButton from "@/features/cart/components/CartButton";
+import CartSessionSync from "@/features/cart/components/CartSessionSync";
+import CartSheet from "@/features/cart/components/CartSheet";
 
 export default function NavBar() {
   const [scrolled, setScrolled] = useState(false);
@@ -39,22 +41,18 @@ export default function NavBar() {
 
         <div className="absolute right-5 flex items-center gap-4 md:right-16 md:gap-6">
           <UserMenu />
-
-          {/* Inert until the cart feature lands. Disabled rather than silently
-              unresponsive, and without the filled badge — that dot read as
-              "you have items", which was never true. */}
-          <button
-            type="button"
-            disabled
-            // Negative margin holds the icon in place while the padding gives
-            // it a 40px hit area; bare, it was a 20px target.
-            className="text-foreground focus-visible:ring-ring/50 -m-2.5 p-2.5 outline-hidden transition-opacity duration-300 focus-visible:ring-3 disabled:opacity-40"
-            aria-label="Cart — coming soon"
-          >
-            <ShoppingBag className="h-5 w-5" aria-hidden="true" />
-          </button>
+          <CartButton />
         </div>
       </div>
+
+      {/* Mounted here rather than per page so the sheet's open state and its
+          revalidation survive client navigations. */}
+      <CartSheet />
+
+      {/* Renders nothing. Here for the same reason: the cart has to be checked
+          against the live session on every route, not just the ones that
+          happen to show it. */}
+      <CartSessionSync />
     </nav>
   );
 }

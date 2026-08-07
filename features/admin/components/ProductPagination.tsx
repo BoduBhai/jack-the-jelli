@@ -8,6 +8,8 @@ interface ProductPaginationProps {
   total: number;
   /** Current filters, so paging doesn't drop them. */
   params: Record<string, string | undefined>;
+  /** Names what's being paged — the orders list reuses this component. */
+  label?: string;
 }
 
 // Plain links: pagination needs no JS, and keeping it server-rendered means the
@@ -17,6 +19,7 @@ export default function ProductPagination({
   totalPages,
   total,
   params,
+  label = "Product pages",
 }: ProductPaginationProps) {
   if (totalPages <= 1) return null;
 
@@ -35,10 +38,7 @@ export default function ProductPagination({
   const disabledClass = "text-muted-foreground/40 pointer-events-none";
 
   return (
-    <nav
-      aria-label="Product pages"
-      className="flex items-center justify-between gap-4"
-    >
+    <nav aria-label={label} className="flex items-center justify-between gap-4">
       <p className="text-muted-foreground text-xs tracking-widest uppercase">
         Page {page} of {totalPages} · {total} item{total === 1 ? "" : "s"}
       </p>

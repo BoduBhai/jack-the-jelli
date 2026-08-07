@@ -1,7 +1,10 @@
 import Link from "next/link";
 import Logo from "@/components/layout/Logo";
 
-const supportLinks = ["Shipping & Returns", "Privacy & Terms"];
+const supportLinks = [
+  { label: "Shipping & Returns", href: "#" },
+  { label: "Privacy & Terms", href: "#" },
+];
 
 export default function Footer() {
   return (
@@ -23,11 +26,11 @@ export default function Footer() {
         <div className="mt-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
           {supportLinks.map((link) => (
             <Link
-              key={link}
-              href="#"
+              key={link.label}
+              href={link.href}
               className="text-on-surface-variant hover:text-foreground text-[14px] leading-relaxed transition-colors"
             >
-              {link}
+              {link.label}
             </Link>
           ))}
           <span className="text-on-surface-variant text-[10px] font-semibold tracking-[0.25em] uppercase">
