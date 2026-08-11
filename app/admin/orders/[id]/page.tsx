@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Mail, MapPin, Package, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import CustomerDeletedBadge from "@/features/admin/components/CustomerDeletedBadge";
 import OrderStatusControls from "@/features/admin/components/OrderStatusControls";
 import { getOrderByNumber } from "@/features/admin/lib/orders";
 import { ORDER_STATUS_COPY } from "@/features/orders/lib/order-status";
@@ -95,6 +96,10 @@ export default async function AdminOrderDetailPage({
               <p className="font-heading text-foreground text-xl font-medium">
                 {address.fullName}
               </p>
+              {/* The details below are the snapshot taken at checkout, so they
+                  stand on their own — this only warns that looking the account
+                  up will come back empty. */}
+              {order.customerDeleted && <CustomerDeletedBadge />}
             </div>
 
             <div className="space-y-3">

@@ -61,8 +61,21 @@ export interface IOrder {
    * Plain ObjectId, deliberately NOT a `ref`: Better Auth owns the `user`
    * collection and there is no models/User.ts to point at, so populate() would
    * throw MissingSchemaError.
+   *
+   * Nullable: set to null when the account is hard-deleted, which is also what
+   * a guest checkout looks like.
    */
-  userId?: mongoose.Types.ObjectId;
+  userId?: mongoose.Types.ObjectId | null;
+  /**
+   * The *only* signal that this order's customer was deleted.
+   *
+   * A null `userId` alone says nothing — most orders on a COD storefront are
+   * placed as a guest and never had one. Only this stamp distinguishes "the
+   * account behind this order was erased" from "there never was an account",
+   * and it is what stops claimGuestOrders re-attaching the history if the same
+   * email signs up again.
+   */
+  customerDeletedAt?: Date | null;
   /** Lowercased. What claimGuestOrders matches a verified email against. */
   guestEmail?: string;
   /** Normalised to 01XXXXXXXXX — the /track lookup key, never displayed. */
@@ -149,6 +162,7 @@ const orderSchema = new Schema<IOrder>(
     },
     idempotencyKey: { type: String, required: true, unique: true },
     userId: { type: Schema.Types.ObjectId },
+    customerDeletedAt: { type: Date, default: null },
     guestEmail: { type: String, lowercase: true, trim: true },
     phoneKey: { type: String, required: true, index: true },
     items: { type: [orderItemSchema], required: true },

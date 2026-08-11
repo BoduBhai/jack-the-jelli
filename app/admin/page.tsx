@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import CustomerDeletedBadge from "@/features/admin/components/CustomerDeletedBadge";
 import FulfillmentBadge from "@/features/admin/components/FulfillmentBadge";
 import OrderFilters from "@/features/admin/components/OrderFilters";
 import ProductPagination from "@/features/admin/components/ProductPagination";
@@ -112,6 +113,11 @@ export default async function AdminOrdersPage({
                   <div className="text-muted-foreground mt-1 text-xs font-semibold tracking-widest">
                     {formatBdPhone(order.customerPhone)}
                   </div>
+                  {order.customerDeleted && (
+                    <div className="mt-2">
+                      <CustomerDeletedBadge />
+                    </div>
+                  )}
                 </TableCell>
                 <TableCell className="text-foreground py-8 tracking-wide">
                   {formatPrice(order.totalAmount)}

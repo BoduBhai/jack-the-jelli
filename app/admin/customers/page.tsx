@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import CustomerFilters from "@/features/admin/components/CustomerFilters";
 import CustomerRoleSelect from "@/features/admin/components/CustomerRoleSelect";
+import DeleteCustomerDialog from "@/features/admin/components/DeleteCustomerDialog";
 import ProductPagination from "@/features/admin/components/ProductPagination";
 import { getCustomers } from "@/features/admin/lib/customers";
 import { USER_ROLES, type UserRole } from "@/features/admin/lib/roles";
@@ -26,6 +27,7 @@ const TABLE_HEADERS = [
   "Lifetime Value",
   "Joined",
   "Role",
+  "Actions",
 ] as const;
 
 interface AdminCustomersProps {
@@ -206,6 +208,16 @@ export default async function AdminCustomersPage({
                       userId={customer.id}
                       name={customer.name}
                       role={customer.role}
+                      isSelf={isSelf}
+                    />
+                  </TableCell>
+
+                  <TableCell className="py-8">
+                    <DeleteCustomerDialog
+                      userId={customer.id}
+                      name={customer.name}
+                      email={customer.email}
+                      orderCount={customer.orderCount}
                       isSelf={isSelf}
                     />
                   </TableCell>

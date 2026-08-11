@@ -46,11 +46,17 @@ const cartSchema = new Schema<ICart>(
   { timestamps: true },
 );
 
-// Carts expire on their own sixty days after the last write. A cart is a draft,
-// not a record: keeping one alive forever would quietly accumulate rows for
-// accounts that never come back, and every write refreshes updatedAt, so an
-// actively used cart never ages out.
-cartSchema.index({ updatedAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 60 });
+// Carts expire on their own a week after the last write. A cart is a draft, not
+// a record: one nobody has touched in seven days is not one anyone is coming
+// back to, and every write refreshes updatedAt, so an actively used cart never
+// ages out.
+//
+// NOTE: MongoDB will not change expireAfterSeconds on an index that already
+// exists — Mongoose's autoIndex only calls createIndex, which fails with
+// IndexOptionsConflict rather than updating it, and nothing here listens for
+// that error. Editing this number only affects databases where the index has yet
+// to be built; an existing deployment needs a one-off collMod to match.
+cartSchema.index({ updatedAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 7 });
 
 // Hot-reload guard — without it dev throws OverwriteModelError.
 // NOTE: this also means schema edits don't take effect until the dev server

@@ -47,6 +47,11 @@ export interface OrderDTO {
   id: string;
   orderNumber: string;
   userId?: string;
+  /**
+   * The account behind this order was hard-deleted. The snapshot below is
+   * untouched and stays the record for returns and courier disputes.
+   */
+  customerDeleted: boolean;
   guestEmail?: string;
   shippingAddress: ShippingAddressDTO;
   deliveryZone: DeliveryZone;
@@ -75,6 +80,8 @@ export interface OrderSummaryDTO {
   customerName: string;
   customerPhone: string;
   customerEmail?: string;
+  /** See OrderDTO — the name and phone above are the snapshot, not the account. */
+  customerDeleted: boolean;
   itemCount: number;
   totalAmount: number;
   status: OrderStatus;

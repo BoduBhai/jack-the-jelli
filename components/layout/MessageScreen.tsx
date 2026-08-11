@@ -78,7 +78,7 @@ export default function MessageScreen({
       )}
     >
       {eyebrow ? (
-        <p className="text-on-surface-variant text-[12px] font-semibold tracking-[0.1em] uppercase">
+        <p className="text-on-surface-variant text-[12px] font-semibold tracking-widest uppercase">
           {eyebrow}
         </p>
       ) : null}

@@ -31,6 +31,7 @@ export function toOrderDTO(order: LeanOrder): OrderDTO {
     id: String(order._id),
     orderNumber: order.orderNumber,
     userId: order.userId ? String(order.userId) : undefined,
+    customerDeleted: Boolean(order.customerDeletedAt),
     guestEmail: order.guestEmail,
     shippingAddress: {
       fullName: order.shippingAddress.fullName,
@@ -81,6 +82,7 @@ export function toOrderSummaryDTO(order: LeanOrder): OrderSummaryDTO {
     customerName: order.shippingAddress.fullName,
     customerPhone: order.shippingAddress.phone,
     customerEmail: order.guestEmail,
+    customerDeleted: Boolean(order.customerDeletedAt),
     itemCount: order.items.reduce((total, item) => total + item.qty, 0),
     totalAmount: order.totalAmount,
     status: order.status,
@@ -204,7 +206,12 @@ export async function claimGuestOrders(
     // `userId: null` matches both a missing field and an explicitly null one;
     // `$exists: false` would miss the latter, and silently stop claiming if
     // anything ever writes the field as null.
-    { guestEmail: normalisedEmail, userId: null },
+    //
+    // customerDeletedAt is what makes a hard delete stick. A deleted customer's
+    // orders keep their guestEmail — it's part of the snapshot — so without this
+    // clause, the same person signing up again and verifying the same address
+    // would silently inherit the history that was just erased.
+    { guestEmail: normalisedEmail, userId: null, customerDeletedAt: null },
     { $set: { userId: new Types.ObjectId(userId) } },
   );
 
