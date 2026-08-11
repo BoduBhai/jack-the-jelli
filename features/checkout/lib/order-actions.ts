@@ -7,6 +7,7 @@ import { getSession } from "@/lib/auth-guard";
 import { connectDB } from "@/lib/db";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 import { getDuplicateKeyFields } from "@/lib/mongo-errors";
+import { clientKey, createRateLimiter } from "@/lib/rate-limit";
 import { Order, Product, type IOrderItem } from "@/models";
 // Pure FormData/zod helpers — nothing admin-specific about either, they just
 // happen to have been written for the admin actions first.
@@ -45,6 +46,16 @@ const RETRY_MESSAGE =
   "Something went wrong while placing your order. Nothing has been charged — please try again.";
 
 /**
+ * Placement brake. Nothing gates order creation — cash on delivery means no
+ * payment step — so an unthrottled script could walk stock to zero, and every
+ * order it lands sends a Resend email to an address it chose. The cap is
+ * deliberately generous: a real customer submits once (maybe twice after a
+ * stock conflict), while carrier-grade NAT can put a whole neighbourhood
+ * behind one x-forwarded-for.
+ */
+const placementLimiter = createRateLimiter({ windowMs: 60_000, max: 8 });
+
+/**
  * Place a cash-on-delivery order.
  *
  * Guest-first: there is no requireAuth() here, because Better Auth requires
@@ -75,6 +86,18 @@ export async function placeOrder(
   formData: FormData,
 ): Promise<CheckoutFormState> {
   const values = collectValues(formData, CHECKOUT_VALUE_FIELDS);
+
+  // After collectValues so a false positive still echoes the address back
+  // instead of wiping the form, but before the parse and every database call —
+  // a throttled request must cost nothing beyond reading the FormData.
+  if (placementLimiter(await clientKey())) {
+    return {
+      ok: false,
+      values,
+      message: "Too many attempts. Please wait a minute and try again.",
+    };
+  }
+
   const parsed = checkoutSchema.safeParse(readCheckoutFormData(formData));
 
   if (!parsed.success) {

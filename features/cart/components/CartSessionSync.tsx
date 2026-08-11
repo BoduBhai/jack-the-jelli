@@ -94,9 +94,29 @@ export default function CartSessionSync() {
         );
       })
       .catch(() => {
-        // The saved cart is unreachable. Clearing the local one would be the
-        // destructive choice, so the cart stays put and unstamped; the next
-        // load tries again.
+        if (cancelled) return;
+
+        // The saved cart is unreachable. Which way that cuts depends on whose
+        // cart is actually sitting here, so read the owner back now rather than
+        // trusting the value this effect opened with: adoptCart may already have
+        // landed and left only the reprice to fail, and that cart is the right
+        // one to keep.
+        const current = useCartStore.getState().ownerId ?? null;
+
+        if (current !== null && current !== userId) {
+          // Still stamped with an account that isn't the one signed in. Leaving
+          // it would sit one shopper in front of another's pieces — the exact
+          // leak this component exists to close — and a failed lookup is no
+          // reason to hold that open. Nothing is destroyed: those items are in
+          // Mongo under their own owner, same as on sign-out. Dropped unstamped,
+          // so the next load retries the sync.
+          useCartStore.getState().resetForSignOut();
+          return;
+        }
+
+        // Unowned, or already adopted. This cart is this shopper's own, so
+        // clearing it would be the destructive choice — it stays put and the
+        // next load tries again.
       });
 
     return () => {

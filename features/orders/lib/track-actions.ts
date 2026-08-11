@@ -1,6 +1,6 @@
 "use server";
 
-import { headers } from "next/headers";
+import { clientKey, createRateLimiter } from "@/lib/rate-limit";
 import { getOrderForTracking } from "@/features/orders/lib/orders";
 import type { TrackState } from "@/features/orders/lib/track-state";
 
@@ -13,45 +13,12 @@ const NOT_FOUND =
   "No order matches that number and phone. Check both and try again.";
 
 /**
- * Best-effort brute-force brake.
- *
- * Module scope, so it's per server instance and resets on redeploy — which is
- * exactly the tradeoff the zero-cost constraint buys: no Redis, no upstream
- * rate-limit service. It won't stop a distributed attacker, but it does stop
- * the realistic one (a script from one address walking the order-number
- * space), and requiring a matching phone number is the actual defence.
+ * Brute-force brake on the lookup. It won't stop a distributed attacker, but
+ * it does stop the realistic one (a script from one address walking the
+ * order-number space), and requiring a matching phone number is the actual
+ * defence.
  */
-const WINDOW_MS = 60_000;
-const MAX_ATTEMPTS = 12;
-const attempts = new Map<string, number[]>();
-
-function rateLimited(key: string): boolean {
-  const now = Date.now();
-  const recent = (attempts.get(key) ?? []).filter(
-    (stamp) => now - stamp < WINDOW_MS,
-  );
-  recent.push(now);
-  attempts.set(key, recent);
-
-  // Cheap sweep so the map can't grow without bound on a long-lived instance.
-  if (attempts.size > 5_000) {
-    for (const [id, stamps] of attempts) {
-      if (stamps.every((stamp) => now - stamp >= WINDOW_MS))
-        attempts.delete(id);
-    }
-  }
-
-  return recent.length > MAX_ATTEMPTS;
-}
-
-async function clientKey(): Promise<string> {
-  const headerList = await headers();
-  return (
-    headerList.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    headerList.get("x-real-ip") ??
-    "unknown"
-  );
-}
+const lookupLimiter = createRateLimiter({ windowMs: 60_000, max: 12 });
 
 /**
  * Public order lookup. No session required — this is the guest tracking path,
@@ -80,7 +47,7 @@ export async function lookupOrder(
     };
   }
 
-  if (await rateLimited(await clientKey())) {
+  if (lookupLimiter(await clientKey())) {
     return {
       searched: true,
       values,

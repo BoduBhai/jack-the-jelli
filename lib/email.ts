@@ -9,9 +9,28 @@ interface EmailAction {
 }
 
 /**
+ * These templates are the one place in the app that builds HTML by hand — React
+ * escapes everything else — so interpolated text has to be escaped here or not
+ * at all. Customer names come straight off the checkout form and product names
+ * are typed in the admin, so an ordinary `Rahman & Sons` or `Belt & Wallet`
+ * would otherwise emit invalid markup.
+ */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;") // first, or it double-escapes the entities below
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
  * The one email template. Originally single-CTA shaped for the auth links;
  * `summaryHtml` was added so an order confirmation can carry an itemised block
  * without a second template drifting away from this one's styling.
+ *
+ * Every parameter is escaped except `summaryHtml`, which is the sole trusted
+ * HTML slot — it may only ever be fed markup this module built itself.
  */
 function renderEmailHtml(
   heading: string,
@@ -19,16 +38,18 @@ function renderEmailHtml(
   action?: EmailAction,
   summaryHtml?: string,
 ) {
+  const url = action ? escapeHtml(action.url) : "";
+
   return `
     <div style="font-family: Georgia, 'Times New Roman', serif; max-width: 480px; margin: 0 auto; padding: 40px 24px; color: #1a1a1a;">
       <h1 style="font-size: 20px; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 24px;">Jack The Jelli</h1>
-      <h2 style="font-size: 18px; font-weight: normal; margin-bottom: 16px;">${heading}</h2>
-      <p style="font-size: 15px; line-height: 1.6; color: #444; margin-bottom: 24px;">${bodyText}</p>
+      <h2 style="font-size: 18px; font-weight: normal; margin-bottom: 16px;">${escapeHtml(heading)}</h2>
+      <p style="font-size: 15px; line-height: 1.6; color: #444; margin-bottom: 24px;">${escapeHtml(bodyText)}</p>
       ${summaryHtml ?? ""}
       ${
         action
-          ? `<a href="${action.url}" style="display: inline-block; background: #1a1a1a; color: #f9f8f6; text-decoration: none; padding: 14px 28px; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;">${action.label}</a>
-      <p style="font-size: 12px; color: #8a7968; margin-top: 32px;">If the button doesn't work, copy this link: ${action.url}</p>`
+          ? `<a href="${url}" style="display: inline-block; background: #1a1a1a; color: #f9f8f6; text-decoration: none; padding: 14px 28px; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;">${escapeHtml(action.label)}</a>
+      <p style="font-size: 12px; color: #8a7968; margin-top: 32px;">If the button doesn't work, copy this link: ${url}</p>`
           : ""
       }
     </div>
@@ -135,6 +156,11 @@ export interface OrderConfirmationParams {
   totalAmount: number;
 }
 
+/**
+ * Builds the `summaryHtml` slot. Because that slot is interpolated raw, this is
+ * the one function that has to escape its own inputs — prices are numbers, but
+ * the order number and every product name are text.
+ */
 function renderOrderSummary({
   orderNumber,
   items,
@@ -146,7 +172,7 @@ function renderOrderSummary({
     .map(
       (line) => `
       <tr>
-        <td style="padding: 8px 0; font-size: 14px; color: #1a1a1a;">${line.name} <span style="color: #8a7968;">× ${line.qty}</span></td>
+        <td style="padding: 8px 0; font-size: 14px; color: #1a1a1a;">${escapeHtml(line.name)} <span style="color: #8a7968;">× ${line.qty}</span></td>
         <td style="padding: 8px 0; font-size: 14px; text-align: right; color: #1a1a1a;">${formatPrice(line.lineTotal)}</td>
       </tr>`,
     )
@@ -154,7 +180,7 @@ function renderOrderSummary({
 
   return `
     <div style="border-top: 1px solid #e8e5df; border-bottom: 1px solid #e8e5df; padding: 20px 0; margin-bottom: 28px;">
-      <p style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: #8a7968; margin: 0 0 12px;">Order ${orderNumber}</p>
+      <p style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: #8a7968; margin: 0 0 12px;">Order ${escapeHtml(orderNumber)}</p>
       <table style="width: 100%; border-collapse: collapse;">
         ${rows}
         <tr><td colspan="2" style="border-top: 1px solid #e8e5df; padding-top: 12px;"></td></tr>

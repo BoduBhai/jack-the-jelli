@@ -202,9 +202,18 @@ const orderSchema = new Schema<IOrder>(
 orderSchema.index({ status: 1, createdAt: -1 });
 // /my-orders.
 orderSchema.index({ userId: 1, createdAt: -1 });
-// Public tracking: both halves are always supplied together, and requiring the
-// phone is what stops /track being an order-number oracle.
-orderSchema.index({ orderNumber: 1, phoneKey: 1 });
+// claimGuestOrders, which runs from the session.create hook on *every* sign-in.
+// All three are equality predicates, so this is ordered by selectivity; without
+// it the claim scans the whole collection, and that cost grows with every order
+// ever placed.
+//
+// NOTE: there is deliberately no { orderNumber, phoneKey } index. /track always
+// supplies both, but orderNumber is unique, so its own index already resolves
+// the lookup to a single document — the phone is a predicate that document is
+// then checked against, not something an index has to narrow. Mongoose only
+// ever calls createIndex, so a database that already built that index keeps it
+// until a one-off db.orders.dropIndex("orderNumber_1_phoneKey_1").
+orderSchema.index({ guestEmail: 1, userId: 1, customerDeletedAt: 1 });
 
 // Hot-reload guard — without it dev throws OverwriteModelError.
 // NOTE: this also means schema edits don't take effect until the dev server

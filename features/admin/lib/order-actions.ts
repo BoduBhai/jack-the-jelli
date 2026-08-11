@@ -1,5 +1,6 @@
 "use server";
 
+import { type ClientSession } from "mongoose";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth-guard";
@@ -67,6 +68,25 @@ function readNote(formData: FormData): string | undefined {
 }
 
 /**
+ * Hand every line's units back to sellable stock.
+ *
+ * The session is not optional. Restoring stock is always the second half of a
+ * claim — the order update that stamps stockRestoredAt — and the two only mean
+ * anything committed together, so every caller has a transaction to join.
+ */
+function restoreStock(items: IOrderItem[], session: ClientSession) {
+  return Product.bulkWrite(
+    items.map((item) => ({
+      updateOne: {
+        filter: { _id: item.product },
+        update: { $inc: { stock: item.qty } },
+      },
+    })),
+    { session },
+  );
+}
+
+/**
  * Move an order to another status.
  *
  * The legal predecessors go in the **query filter**, not into a JavaScript
@@ -78,6 +98,9 @@ function readNote(formData: FormData): string | undefined {
  *
  * Cancelling and returning are routed away because each also has to settle the
  * stock, which no ordinary move does.
+ *
+ * Draft is subtracted from that set because Draft→Pending is a legal edge that
+ * belongs to checkout alone — see the filter below.
  */
 export async function updateOrderStatus(
   _prevState: AdminFormState,
@@ -104,7 +127,10 @@ export async function updateOrderStatus(
     const at = new Date();
     const stamp = STATUS_TIMESTAMP[status];
     const updated = await Order.findOneAndUpdate(
-      { orderNumber, status: { $in: predecessorsOf(status) } },
+      // `$ne: "Draft"` because predecessorsOf("Pending") includes it: an
+      // in-flight Draft is checkout's to promote, and stealing that transition
+      // would strand its commit and its rollback, which both match on Draft.
+      { orderNumber, status: { $in: predecessorsOf(status), $ne: "Draft" } },
       // A pipeline rather than a plain update, so the milestone timestamp can
       // depend on its own current value. Payment is untouched on purpose: it's
       // set by hand now, and Delivered no longer implies collected.
@@ -164,6 +190,14 @@ export async function updateOrderStatus(
  * it was *before* the write, which is what lets statusHistory be appended to
  * in the same operation that replaces the status.
  *
+ * That filter settles the race, but not the crash: the claim and the restore are
+ * two writes, and a process killed between them would leave stockRestoredAt
+ * stamped over units nobody ever gave back — permanently, since every retry then
+ * fails the very filter that protects it. So the two share a transaction, and a
+ * failed restore rolls the cancel back with it and the operator can just click
+ * again. Same reasoning as hardDeleteCustomer (features/admin/lib/customer-actions.ts):
+ * a rare admin action can afford a pinned connection; placeOrder's hot path can't.
+ *
  * Cancelling says nothing about the money — see updatePaymentStatus.
  */
 export async function cancelOrder(
@@ -183,39 +217,67 @@ export async function cancelOrder(
   const note = readNote(formData);
 
   try {
-    await connectDB();
+    const mongooseInstance = await connectDB();
+    const dbSession = await mongooseInstance.startSession();
+    let previous: { items: IOrderItem[]; status: OrderStatus } | null = null;
 
-    const at = new Date();
-    // The pre-update document is the one that still carries the items to
-    // restore and the status that decides the payment outcome.
-    const previous = await Order.findOneAndUpdate(
-      {
-        orderNumber,
-        status: { $in: predecessorsOf("Cancelled") },
-        stockRestoredAt: null,
-      },
-      [
-        {
-          $set: {
-            status: "Cancelled",
-            cancelledAt: at,
-            stockRestoredAt: at,
-            // paymentStatus is deliberately not written. Whether the courier
-            // came back with cash is the operator's call, not something to
-            // infer from the status this order happened to die in.
-            statusHistory: {
-              $concatArrays: [
-                { $ifNull: ["$statusHistory", []] },
-                [{ status: "Cancelled", at, ...(note ? { note } : {}) }],
-              ],
-            },
+    try {
+      await dbSession.withTransaction(async () => {
+        // Fresh inside the callback: withTransaction re-runs it on a transient
+        // error, and the stamps should date the attempt that actually commits.
+        const at = new Date();
+        // The pre-update document is the one that still carries the items to
+        // restore and the status that decides the payment outcome.
+        previous = await Order.findOneAndUpdate(
+          {
+            orderNumber,
+            // Excluded for a sharper reason than in updateOrderStatus: the
+            // restore below is unconditional, while a Draft may not have reached
+            // its own decrement yet, so cancelling one could hand back units it
+            // never took. Releasing drafts is releaseStaleDrafts' job — it checks
+            // stockCommittedAt first, precisely because this can't.
+            status: { $in: predecessorsOf("Cancelled"), $ne: "Draft" },
+            stockRestoredAt: null,
           },
-        },
-      ],
-      // Mongoose 9 refuses an array update unless the pipeline is declared
-      // explicitly — without this it throws rather than running the update.
-      { returnDocument: "before", updatePipeline: true },
-    ).lean<{ items: IOrderItem[]; status: OrderStatus } | null>();
+          [
+            {
+              $set: {
+                status: "Cancelled",
+                cancelledAt: at,
+                stockRestoredAt: at,
+                // paymentStatus is deliberately not written. Whether the courier
+                // came back with cash is the operator's call, not something to
+                // infer from the status this order happened to die in.
+                statusHistory: {
+                  $concatArrays: [
+                    { $ifNull: ["$statusHistory", []] },
+                    [{ status: "Cancelled", at, ...(note ? { note } : {}) }],
+                  ],
+                },
+              },
+            },
+          ],
+          // Mongoose 9 refuses an array update unless the pipeline is declared
+          // explicitly — without this it throws rather than running the update.
+          {
+            returnDocument: "before",
+            updatePipeline: true,
+            session: dbSession,
+          },
+        ).lean<{ items: IOrderItem[]; status: OrderStatus } | null>();
+
+        // Matched nothing, so wrote nothing: the empty transaction commits and
+        // the diagnostic below explains why outside it.
+        if (!previous) return;
+
+        // Only reached by the single caller that won the filter above.
+        if (previous.items.length > 0) {
+          await restoreStock(previous.items, dbSession);
+        }
+      });
+    } finally {
+      await dbSession.endSession();
+    }
 
     if (!previous) {
       const current = await Order.findOne({ orderNumber })
@@ -233,18 +295,6 @@ export async function cancelOrder(
             ? "This order is already cancelled."
             : `A ${current.status} order can't be cancelled.`,
       };
-    }
-
-    // Only reached by the single caller that won the filter above.
-    if (previous.items.length > 0) {
-      await Product.bulkWrite(
-        previous.items.map((item) => ({
-          updateOne: {
-            filter: { _id: item.product },
-            update: { $inc: { stock: item.qty } },
-          },
-        })),
-      );
     }
   } catch (error) {
     console.error("cancelOrder failed", error);
@@ -270,8 +320,11 @@ export async function cancelOrder(
  * always restocks.
  *
  * The restock branch reuses cancelOrder's exactly-once guarantee, by putting
- * `stockRestoredAt: null` in the filter. A return that *doesn't* restock must
- * leave that guard unclaimed, since its units stay committed.
+ * `stockRestoredAt: null` in the filter — and its transaction, so a restore that
+ * fails takes the whole return down with it rather than stranding the claim. A
+ * return that *doesn't* restock must leave that guard unclaimed, since its units
+ * stay committed; it writes no stock at all, and shares the transaction only so
+ * there's one path through here instead of two.
  */
 export async function returnOrder(
   _prevState: AdminFormState,
@@ -291,33 +344,53 @@ export async function returnOrder(
   const restock = formData.get("restock") === "on";
 
   try {
-    await connectDB();
+    const mongooseInstance = await connectDB();
+    const dbSession = await mongooseInstance.startSession();
+    let previous: { items: IOrderItem[]; status: OrderStatus } | null = null;
 
-    const at = new Date();
-    // The pre-update document still carries the items to restore.
-    const previous = await Order.findOneAndUpdate(
-      {
-        orderNumber,
-        status: { $in: predecessorsOf("Returned") },
-        ...(restock ? { stockRestoredAt: null } : {}),
-      },
-      [
-        {
-          $set: {
-            status: "Returned",
-            returnedAt: at,
-            ...(restock ? { stockRestoredAt: at } : {}),
-            statusHistory: {
-              $concatArrays: [
-                { $ifNull: ["$statusHistory", []] },
-                [{ status: "Returned", at, ...(note ? { note } : {}) }],
-              ],
-            },
+    try {
+      await dbSession.withTransaction(async () => {
+        // Fresh per attempt, as in cancelOrder.
+        const at = new Date();
+        // The pre-update document still carries the items to restore.
+        previous = await Order.findOneAndUpdate(
+          {
+            orderNumber,
+            status: { $in: predecessorsOf("Returned") },
+            ...(restock ? { stockRestoredAt: null } : {}),
           },
-        },
-      ],
-      { returnDocument: "before", updatePipeline: true },
-    ).lean<{ items: IOrderItem[]; status: OrderStatus } | null>();
+          [
+            {
+              $set: {
+                status: "Returned",
+                returnedAt: at,
+                ...(restock ? { stockRestoredAt: at } : {}),
+                statusHistory: {
+                  $concatArrays: [
+                    { $ifNull: ["$statusHistory", []] },
+                    [{ status: "Returned", at, ...(note ? { note } : {}) }],
+                  ],
+                },
+              },
+            },
+          ],
+          {
+            returnDocument: "before",
+            updatePipeline: true,
+            session: dbSession,
+          },
+        ).lean<{ items: IOrderItem[]; status: OrderStatus } | null>();
+
+        if (!previous) return;
+
+        // Only reached by the single caller that won the filter above.
+        if (restock && previous.items.length > 0) {
+          await restoreStock(previous.items, dbSession);
+        }
+      });
+    } finally {
+      await dbSession.endSession();
+    }
 
     if (!previous) {
       const current = await Order.findOne({ orderNumber })
@@ -333,18 +406,6 @@ export async function returnOrder(
             ? "This order is already marked returned."
             : `A ${current.status} order can't be returned — only a shipped or delivered one can.`,
       };
-    }
-
-    // Only reached by the single caller that won the filter above.
-    if (restock && previous.items.length > 0) {
-      await Product.bulkWrite(
-        previous.items.map((item) => ({
-          updateOne: {
-            filter: { _id: item.product },
-            update: { $inc: { stock: item.qty } },
-          },
-        })),
-      );
     }
   } catch (error) {
     console.error("returnOrder failed", error);
@@ -419,6 +480,10 @@ export async function updatePaymentStatus(
  *
  * A Draft that predates its own decrement holds nothing, hence the
  * `stockCommittedAt` check before anything is given back.
+ *
+ * One transaction per draft, not one around the sweep: each release is
+ * independent, so a draft whose restore fails should roll back alone and leave
+ * the ones already released standing. Re-running the sweep picks up the rest.
  */
 export async function releaseStaleDrafts(): Promise<AdminFormState> {
   await requireAdmin();
@@ -426,7 +491,7 @@ export async function releaseStaleDrafts(): Promise<AdminFormState> {
   let released = 0;
 
   try {
-    await connectDB();
+    const mongooseInstance = await connectDB();
 
     const staleBefore = new Date(Date.now() - STALE_DRAFT_MINUTES * 60_000);
     const drafts = await Order.find({
@@ -444,49 +509,62 @@ export async function releaseStaleDrafts(): Promise<AdminFormState> {
         }[]
       >();
 
-    for (const draft of drafts) {
-      const at = new Date();
-      // Same single-restore guarantee as cancelOrder: the filter, not a check.
-      const claimed = await Order.updateOne(
-        {
-          orderNumber: draft.orderNumber,
-          status: "Draft",
-          stockRestoredAt: null,
-        },
-        {
-          $set: {
-            status: "Cancelled",
-            cancelledAt: at,
-            stockRestoredAt: at,
-            paymentStatus: "failed",
-            // Same release as the checkout rollback: this draft never became
-            // an order, so the customer's browser must be able to retry the
-            // identical cart under the key it is still holding.
-            idempotencyKey: `${draft.idempotencyKey}:void:${draft.orderNumber}`,
-          },
-          $push: {
-            statusHistory: {
-              status: "Cancelled",
-              at,
-              note: "Abandoned draft released by sweep",
-            },
-          },
-        },
-      );
+    const dbSession = await mongooseInstance.startSession();
 
-      if (claimed.modifiedCount !== 1) continue;
-      released += 1;
+    try {
+      for (const draft of drafts) {
+        let claimed = false;
 
-      if (draft.stockCommittedAt && draft.items.length > 0) {
-        await Product.bulkWrite(
-          draft.items.map((item) => ({
-            updateOne: {
-              filter: { _id: item.product },
-              update: { $inc: { stock: item.qty } },
+        await dbSession.withTransaction(async () => {
+          // Reset per attempt: withTransaction can re-run this callback, and a
+          // claim from a rolled-back attempt didn't happen.
+          claimed = false;
+          const at = new Date();
+          // Same single-restore guarantee as cancelOrder: the filter, not a
+          // check — and the same transaction, so the restore below either
+          // commits with this claim or leaves the draft to be swept again.
+          const result = await Order.updateOne(
+            {
+              orderNumber: draft.orderNumber,
+              status: "Draft",
+              stockRestoredAt: null,
             },
-          })),
-        );
+            {
+              $set: {
+                status: "Cancelled",
+                cancelledAt: at,
+                stockRestoredAt: at,
+                paymentStatus: "failed",
+                // Same release as the checkout rollback: this draft never became
+                // an order, so the customer's browser must be able to retry the
+                // identical cart under the key it is still holding.
+                idempotencyKey: `${draft.idempotencyKey}:void:${draft.orderNumber}`,
+              },
+              $push: {
+                statusHistory: {
+                  status: "Cancelled",
+                  at,
+                  note: "Abandoned draft released by sweep",
+                },
+              },
+            },
+            { session: dbSession },
+          );
+
+          if (result.modifiedCount !== 1) return;
+          claimed = true;
+
+          if (draft.stockCommittedAt && draft.items.length > 0) {
+            await restoreStock(draft.items, dbSession);
+          }
+        });
+
+        // Counted out here, never inside the callback: a retried transaction
+        // runs that body more than once, and only the commit is real.
+        if (claimed) released += 1;
       }
+    } finally {
+      await dbSession.endSession();
     }
   } catch (error) {
     console.error("releaseStaleDrafts failed", error);

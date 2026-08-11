@@ -73,13 +73,17 @@ export default function CheckoutView({
       reason: "sold-out" as const,
     }));
 
-  // The server's verdict from the last attempt, minus any line the customer
-  // has since removed — otherwise the alert keeps offering "Remove" for a
-  // piece that is already gone.
-  const stillInCart = new Set(lines.map((line) => line.productId));
-  const reported = (state.unavailable ?? []).filter((line) =>
-    stillInCart.has(line.productId),
-  );
+  // The server's verdict from the last attempt, minus any line the customer has
+  // since put right — removed outright, or reduced to within what was actually
+  // left. Quantity and not just membership, or the alert keeps offering
+  // "Reduce to 2" for a line already sitting at 2, and keeps saying "you asked
+  // for 5" after they've complied. A line no longer in the cart has no quantity
+  // to compare, which is what drops it.
+  const currentQty = new Map(lines.map((line) => [line.productId, line.qty]));
+  const reported = (state.unavailable ?? []).filter((line) => {
+    const qty = currentQty.get(line.productId);
+    return qty !== undefined && qty > line.available;
+  });
 
   const blockers = soldOut.length > 0 ? soldOut : reported;
 

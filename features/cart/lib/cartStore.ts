@@ -89,7 +89,12 @@ interface CartState {
   clear: () => void;
   /** Replaces the cart with the server's copy and stamps it with its owner. */
   adoptCart: (ownerId: string, lines: CartLineInput[]) => void;
-  /** Drops a signed-out shopper's cart. The saved copy lives on the server. */
+  /**
+   * Drops the local cart and leaves it unstamped. The saved copy lives on the
+   * server under whoever owned it, so this destroys nothing. Used on sign-out,
+   * and when a cart belonging to another account can't be swapped for the
+   * signed-in one.
+   */
   resetForSignOut: () => void;
   openCart: () => void;
   closeCart: () => void;

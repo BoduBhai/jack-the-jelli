@@ -22,8 +22,9 @@ export interface StatusOption {
  * Each button is its own submitter carrying `name`/`value`, which React 19 puts
  * into the FormData — so there's no "pick, then save" second step and no
  * selection state that could disagree with what the server actually holds. The
- * current option is disabled rather than hidden, because the row doubles as the
- * display of where the order stands.
+ * current option is inert rather than hidden, because the row doubles as the
+ * display of where the order stands — and inert via `aria-disabled` rather than
+ * `disabled` for the same reason, so keyboard users can still reach the readout.
  */
 export default function StatusButtonRow({
   label,
@@ -82,13 +83,25 @@ export default function StatusButtonRow({
               size="sm"
               variant={isCurrent ? "secondary" : "outline"}
               aria-pressed={isCurrent}
-              disabled={pending || isCurrent || isDisabled?.(option.value)}
-              onClick={() => setSubmitting(option.value)}
+              // Inert, but never `disabled`: this is the button that says where
+              // the order stands, so it has to stay in the tab order.
+              aria-disabled={isCurrent}
+              disabled={pending || isDisabled?.(option.value)}
+              onClick={(event) => {
+                // Nothing removes the current option from the form, so the
+                // keyboard path has to be turned away here.
+                if (isCurrent) {
+                  event.preventDefault();
+                  return;
+                }
+                setSubmitting(option.value);
+              }}
               className={cn(
                 "rounded-none tracking-wider uppercase",
-                // The current option is disabled so it can't be re-submitted,
-                // but it's the one thing here that must not look faded.
-                isCurrent && "disabled:opacity-100",
+                // Dead to the mouse the way `disabled` was, and the one thing
+                // here that must not look faded while a sibling submits.
+                isCurrent &&
+                  "disabled:opacity-100 aria-disabled:pointer-events-none",
               )}
             >
               {submitting === option.value && pending ? (
