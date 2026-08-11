@@ -20,25 +20,40 @@ export function createRateLimiter({
   max: number;
 }): (key: string) => boolean {
   const attempts = new Map<string, number[]>();
+  let nextSweep = Date.now() + windowMs;
 
-  /** Records this attempt, then reports whether the window is now exhausted. */
+  /**
+   * Reports whether this key has already spent its window, recording the
+   * attempt only when it is let through. Not recording rejections is what
+   * makes the "wait a minute" copy true: a blocked caller recovers a window
+   * after their last *accepted* attempt rather than their last retry, so a
+   * customer refreshing checkout — or anyone sharing one carrier-grade-NAT
+   * address with them — can't hold themselves locked out. It also caps each
+   * key at `max` timestamps, so a script can't make the limiter more
+   * expensive by hammering it harder.
+   */
   return function rateLimited(key: string): boolean {
     const now = Date.now();
     const recent = (attempts.get(key) ?? []).filter(
       (stamp) => now - stamp < windowMs,
     );
-    recent.push(now);
+    const allowed = recent.length < max;
+    if (allowed) recent.push(now);
     attempts.set(key, recent);
 
-    // Cheap sweep so the map can't grow without bound on a long-lived instance.
-    if (attempts.size > 5_000) {
+    // Sweep on a cadence rather than on map size: a size threshold that stays
+    // exceeded turns every request into a full scan that frees nothing. Runs
+    // after this key is recorded, so the entry just written is never the one
+    // collected.
+    if (now >= nextSweep) {
+      nextSweep = now + windowMs;
       for (const [id, stamps] of attempts) {
         if (stamps.every((stamp) => now - stamp >= windowMs))
           attempts.delete(id);
       }
     }
 
-    return recent.length > max;
+    return !allowed;
   };
 }
 
