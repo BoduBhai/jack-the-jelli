@@ -60,6 +60,7 @@ function toPublicProduct(product: LeanProduct): PublicProduct {
     thumbnail: product.thumbnail,
     // A category deleted out from under a product shouldn't crash the grid.
     category: product.category?.name ?? "Uncategorised",
+    stock: product.stock,
   };
 }
 

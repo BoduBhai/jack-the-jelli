@@ -3,26 +3,56 @@
 import { ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useCartStore } from "@/features/cart/lib/cartStore";
+
+/**
+ * What the button needs to put a line in the cart. Only `id` and `qty` are
+ * ever authoritative — the rest is snapshotted so the sheet can render
+ * instantly, and every figure is recomputed server-side at placement.
+ */
+export interface AddToCartProduct {
+  id: string;
+  slug: string;
+  name: string;
+  price: number;
+  thumbnail?: string;
+  stock: number;
+}
 
 interface AddToCartButtonProps {
-  productName: string;
-  /** Sold-out products render the button disabled with a "Sold out" label. */
-  soldOut?: boolean;
+  product: AddToCartProduct;
   /** "detail" is the full-width primary CTA; "card" is the compact grid variant. */
   variant?: "card" | "detail";
   className?: string;
 }
 
 export default function AddToCartButton({
-  productName,
-  soldOut = false,
+  product,
   variant = "card",
   className,
 }: AddToCartButtonProps) {
-  // Placeholder until the cart feature lands — deliberately does not claim the
-  // piece was added, because nothing is stored yet.
+  const addItem = useCartStore((state) => state.addItem);
+  const openCart = useCartStore((state) => state.openCart);
+
+  const soldOut = product.stock <= 0;
+
   const handleClick = () => {
-    toast("The cart is coming soon.", { description: productName });
+    addItem({
+      productId: product.id,
+      slug: product.slug,
+      name: product.name,
+      price: product.price,
+      thumbnail: product.thumbnail,
+      maxQty: product.stock,
+    });
+    // The toast is the whole confirmation. Opening the sheet here used to be,
+    // but it interrupts the common case — adding several pieces from the grid
+    // — by covering the grid after every click. The sheet is offered instead,
+    // and stays something the shopper opens.
+    toast("Added to your cart.", {
+      description: product.name,
+      action: { label: "View cart", onClick: openCart },
+    });
   };
 
   return (

@@ -76,11 +76,7 @@ export default function ProductDetailView({
                 />
                 {stockLabel(product.stock)}
               </p>
-              <AddToCartButton
-                productName={product.name}
-                soldOut={soldOut}
-                variant="detail"
-              />
+              <AddToCartButton product={product} variant="detail" />
             </div>
 
             <ProductSpecList sku={product.sku} category={product.category} />

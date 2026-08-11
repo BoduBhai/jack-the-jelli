@@ -1,30 +1,20 @@
-export type FulfillmentStatus =
-  "Pending" | "Confirmed" | "Shipped" | "Delivered" | "Cancelled";
-
-// Represents the payment outcome for an order:
-export type PaymentStatus = "pending" | "collected" | "failed";
-
-export interface OrderItem {
-  id: string;
-  name: string;
-  sku: string;
-  material: string;
-  price: number;
-  qty: number;
-}
-
-export interface Order {
-  orderNumber: string; // Unique order identifier (e.g. "ORD-9042")
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  totalAmount: number; // Total order value (subtotal + delivery)
-  status: FulfillmentStatus;
-  paymentStatus: PaymentStatus;
-  createdAt: string;
-  items?: OrderItem[]; // *TODO: remove optional when API is ready
-  isError?: boolean; // *TODO: error state — marks rows with courier/payment issues
-}
+// Orders are real now: the mock `Order`/`OrderItem` interfaces that used to
+// live here are gone, along with the `material` field they carried — there was
+// never a counterpart for it on models/Product.ts, so it was dropped rather
+// than invented. These re-exports keep the admin components importing from one
+// place while the shapes themselves live with the orders feature.
+export type {
+  OrderStatus,
+  PaymentStatus,
+  AdminSettableStatus,
+} from "@/features/orders/lib/order-status";
+export type {
+  OrderDTO,
+  OrderItemDTO,
+  OrderStatusEntryDTO,
+  OrderSummaryDTO,
+  ShippingAddressDTO,
+} from "@/features/orders/lib/order-types";
 
 // Type-only import/re-export: erased at compile time, so client components
 // importing from here never pull Mongoose into the bundle.

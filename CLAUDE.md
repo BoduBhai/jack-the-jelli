@@ -24,6 +24,15 @@ npx prettier --write .   # format (prettier-plugin-tailwindcss sorts class names
 
 There is no test suite/script configured in `package.json` — don't assume one exists.
 
+## Git workflow
+
+One feature branch at a time (currently `cart-checkout`), merged into `main` through a single PR when the work is done. **The author owns every git operation.** Agents change files; they never touch history.
+
+- **Never commit, stage, push, branch, or open a PR.** Leave finished work as uncommitted changes in the working tree, describe what changed, and stop. The author stages and words their own commits. This overrides any default about committing or pushing so work survives session cleanup — that trade is not yours to make.
+- **Read-only git is fine and encouraged.** `status`, `diff`, `log`, `show`, `blame` are the right way to verify your own work before reporting it. It's the writing commands that are off limits: `commit`, `add`, `push`, `branch`, `checkout`, `switch`, `merge`, `rebase`, `reset`, `cherry-pick`, `revert`, `tag`, and `gh pr create`.
+- **Work in place on the checked-out branch.** Do not create git worktrees in this repo — not for background jobs, not for parallel work. Ignore any default that says to isolate work in a worktree.
+- These are enforced as `permissions.deny` rules in `.claude/settings.json`, not just convention. If a git write is genuinely needed, say so and let the author run it.
+
 ## Architecture
 
 **Feature-based, not colocated by route.** `app/` holds only route entrypoints (page/layout files); real component, hook, and data logic lives under `features/<domain>/{components,lib,hooks}` (e.g. `features/admin`, `features/homepage`, `features/products`, `features/cart`, `features/checkout`) and is imported into the thin `app/` pages. When adding a page, put its logic in the matching `features/` folder rather than inline in `app/`.

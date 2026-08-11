@@ -194,7 +194,9 @@ export default function CategoryManagerDialog({
             <p
               role="status"
               className={
-                state.ok ? "text-muted-foreground text-sm" : "text-destructive text-sm"
+                state.ok
+                  ? "text-muted-foreground text-sm"
+                  : "text-destructive text-sm"
               }
             >
               {state.message}

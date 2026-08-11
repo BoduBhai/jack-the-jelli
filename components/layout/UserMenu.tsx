@@ -135,9 +135,14 @@ export default function UserMenu() {
         <DropdownMenuItem asChild>
           <Link href="/account">Account</Link>
         </DropdownMenuItem>
-        {/* Orders lands with the checkout/order-history phase — placeholder
-            until then rather than a link to a page that doesn't exist. */}
-        <DropdownMenuItem disabled>Orders</DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/my-orders">Orders</Link>
+        </DropdownMenuItem>
+        {user.role === "admin" && (
+          <DropdownMenuItem asChild>
+            <Link href="/admin">Admin Panel</Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           variant="destructive"
