@@ -9,11 +9,13 @@ import MessageScreen, {
 } from "@/components/layout/MessageScreen";
 
 /**
- * Scoped to /collection so a failed product fetch retries just this segment
- * rather than the whole storefront. The route's own copy is kept — the generic
- * storefront boundary one level up says less.
+ * Catch-all for the storefront. Renders inside (storefront)/layout.tsx, so nav
+ * and footer stay put while this is in control.
+ *
+ * It does not cover a throw in StorefrontLayout itself — an error boundary
+ * never wraps the layout of its own segment. That case falls to app/error.tsx.
  */
-export default function CollectionError({
+export default function StorefrontError({
   error,
   unstable_retry,
 }: {
@@ -31,7 +33,7 @@ export default function CollectionError({
       title="Something went wrong"
       description={
         <>
-          We couldn&apos;t load the collection. Please try again.
+          We couldn&apos;t load this page. Please try again.
           {error.digest ? (
             <span className="mt-6 block text-[12px]">
               Reference: {error.digest}
