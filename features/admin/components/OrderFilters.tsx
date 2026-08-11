@@ -5,7 +5,14 @@ import { useEffect, useState, useTransition } from "react";
 import { Search } from "lucide-react";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ADMIN_SETTABLE_STATUSES } from "@/features/orders/lib/order-status";
 import type { AdminSettableStatus } from "@/features/admin/lib/types";
 
@@ -17,8 +24,8 @@ const SEARCH_DEBOUNCE_MS = 300;
  * ProductFilters. Every change resets to page 1, or you can land on page 4 of
  * a two-page result.
  *
- * The tabs are the real state machine, not the invented "Action Required /
- * In Transit / Archived" set the mock carried.
+ * The status options are the real state machine, not the invented "Action
+ * Required / In Transit / Archived" set the mock carried.
  */
 export default function OrderFilters({
   counts,
@@ -66,9 +73,12 @@ export default function OrderFilters({
   const current = searchParams.get("status") ?? "all";
 
   return (
-    <div className="flex flex-col gap-8" data-pending={isPending || undefined}>
+    <div
+      className="flex flex-col gap-4 sm:flex-row sm:items-center"
+      data-pending={isPending || undefined}
+    >
       <Field
-        className="border-primary bg-accent w-full border-b p-2 sm:w-96"
+        className="border-primary flex-1 border-b p-2"
         orientation="horizontal"
       >
         <Input
@@ -81,35 +91,33 @@ export default function OrderFilters({
         <Search />
       </Field>
 
-      <Tabs value={current} onValueChange={setStatus}>
-        <TabsList variant="line" className="overflow-x-auto">
-          <TabsTrigger
-            value="all"
-            className="min-w-fit text-sm whitespace-nowrap md:text-base"
-          >
-            All
-            {counts.all > 0 && (
-              <span className="text-muted-foreground ml-1.5">
-                ({counts.all})
-              </span>
-            )}
-          </TabsTrigger>
-          {ADMIN_SETTABLE_STATUSES.map((status) => (
-            <TabsTrigger
-              key={status}
-              value={status}
-              className="min-w-fit text-sm whitespace-nowrap md:text-base"
-            >
-              {status}
-              {counts[status] > 0 && (
-                <span className="text-muted-foreground ml-1.5">
-                  ({counts[status]})
-                </span>
-              )}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+      <Field className="border-primary w-48 border-b p-2">
+        <Select value={current} onValueChange={setStatus}>
+          <SelectTrigger aria-label="Filter by order status">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="all">
+                All Orders
+                {counts.all > 0 && (
+                  <span className="text-muted-foreground">({counts.all})</span>
+                )}
+              </SelectItem>
+              {ADMIN_SETTABLE_STATUSES.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {status}
+                  {counts[status] > 0 && (
+                    <span className="text-muted-foreground">
+                      ({counts[status]})
+                    </span>
+                  )}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </Field>
     </div>
   );
 }

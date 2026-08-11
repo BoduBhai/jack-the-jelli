@@ -5,7 +5,14 @@ import { useEffect, useState, useTransition } from "react";
 import { Search } from "lucide-react";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   ROLE_COPY,
   USER_ROLES,
@@ -66,9 +73,12 @@ export default function CustomerFilters({
   const current = searchParams.get("role") ?? "all";
 
   return (
-    <div className="flex flex-col gap-8" data-pending={isPending || undefined}>
+    <div
+      className="flex flex-col gap-4 sm:flex-row sm:items-center"
+      data-pending={isPending || undefined}
+    >
       <Field
-        className="border-primary bg-accent w-full border-b p-2 sm:w-96"
+        className="border-primary flex-1 border-b p-2"
         orientation="horizontal"
       >
         <Input
@@ -81,36 +91,35 @@ export default function CustomerFilters({
         <Search />
       </Field>
 
-      <Tabs value={current} onValueChange={setRole}>
-        <TabsList variant="line" className="overflow-x-auto">
-          <TabsTrigger
-            value="all"
-            className="min-w-fit text-sm whitespace-nowrap md:text-base"
-          >
-            All
-            {counts.all > 0 && (
-              <span className="text-muted-foreground ml-1.5">
-                ({counts.all})
-              </span>
-            )}
-          </TabsTrigger>
-          {USER_ROLES.map((role) => (
-            <TabsTrigger
-              key={role}
-              value={role}
-              className="min-w-fit text-sm whitespace-nowrap md:text-base"
-            >
-              {/* Pluralised: the tab names a group, not one person's role. */}
-              {ROLE_COPY[role]}s
-              {counts[role] > 0 && (
-                <span className="text-muted-foreground ml-1.5">
-                  ({counts[role]})
-                </span>
-              )}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+      <Field className="border-primary w-48 border-b p-2">
+        <Select value={current} onValueChange={setRole}>
+          <SelectTrigger aria-label="Filter by role">
+            <SelectValue placeholder="Role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="all">
+                All Roles
+                {counts.all > 0 && (
+                  <span className="text-muted-foreground">({counts.all})</span>
+                )}
+              </SelectItem>
+              {USER_ROLES.map((role) => (
+                <SelectItem key={role} value={role}>
+                  {/* Pluralised: the option names a group, not one person's
+                      role. */}
+                  {ROLE_COPY[role]}s
+                  {counts[role] > 0 && (
+                    <span className="text-muted-foreground">
+                      ({counts[role]})
+                    </span>
+                  )}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </Field>
     </div>
   );
 }
