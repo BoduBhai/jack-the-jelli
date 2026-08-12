@@ -142,7 +142,9 @@ export const ORDER_STATUS_COPY: Record<OrderStatus, StatusCopy> = {
   },
   Delivered: {
     label: "Delivered",
-    description: "Delivered and payment collected.",
+    // Says nothing about money: payment is set by hand and can still be
+    // AWAITING COLLECTION while this renders. See PAYMENT_STATUS_COPY.
+    description: "Delivered to your address.",
   },
   Cancelled: {
     label: "Cancelled",
