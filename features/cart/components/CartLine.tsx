@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import AppLink from "@/components/layout/AppLink";
 import { Minus, Plus, X } from "lucide-react";
 import { useCartStore, type CartItem } from "@/features/cart/lib/cartStore";
 import { MAX_LINE_QTY } from "@/features/cart/lib/limits";
@@ -34,7 +34,7 @@ export default function CartLine({
         soldOut ? "opacity-60" : ""
       }`}
     >
-      <Link
+      <AppLink
         href={`/collection/${line.slug}`}
         onClick={onNavigate}
         tabIndex={-1}
@@ -48,17 +48,17 @@ export default function CartLine({
           sizes="80px"
           className="object-cover"
         />
-      </Link>
+      </AppLink>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-start justify-between gap-3">
-          <Link
+          <AppLink
             href={`/collection/${line.slug}`}
             onClick={onNavigate}
             className="text-foreground hover:text-secondary font-serif text-[16px] leading-snug transition-colors duration-300"
           >
             {line.name}
-          </Link>
+          </AppLink>
           <button
             type="button"
             onClick={() => removeItem(line.productId)}

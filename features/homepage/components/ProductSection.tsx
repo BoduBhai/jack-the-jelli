@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { useInView } from "@/lib/hooks/useInView";
-import Link from "next/link";
+import AppLink from "@/components/layout/AppLink";
 
 // TODO: Remove this once we have a proper image service
 
@@ -77,13 +77,13 @@ export default function ProductSection() {
               </p>
             </div>
 
-            <Link
+            <AppLink
               href="/collection?category=flame-wallet"
               className="text-foreground border-foreground hover:border-on-surface-variant hover:text-on-surface-variant inline-flex w-fit items-center gap-2 border-b pb-1 text-[12px] font-semibold tracking-widest uppercase transition-colors duration-300"
             >
               Discover Flame
               <ArrowRight className="h-4 w-4" />
-            </Link>
+            </AppLink>
           </div>
 
           <div className="order-1 md:order-2 md:col-span-5 md:col-start-8">
@@ -171,12 +171,12 @@ export default function ProductSection() {
               </p>
             </div>
 
-            <Link
+            <AppLink
               href="/collection?category=regular-wallet"
               className="border-foreground text-foreground hover:bg-foreground hover:text-background inline-flex items-center justify-center rounded-none border bg-transparent px-10 py-4 text-[12px] font-semibold tracking-widest uppercase transition-colors duration-300"
             >
               View Classic
-            </Link>
+            </AppLink>
           </div>
         </div>
       </section>

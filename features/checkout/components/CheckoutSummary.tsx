@@ -58,7 +58,7 @@ export default function CheckoutSummary({
   const shortfall = amountToFreeDelivery(subtotal);
 
   return (
-    <aside className="border-outline-variant/20 bg-surface-container-low/40 border p-6 md:p-8 lg:sticky lg:top-32">
+    <aside className="border-outline-variant bg-surface-container-low border p-6 md:p-8 lg:sticky lg:top-32">
       <h2 className="text-foreground font-serif text-[28px] leading-tight tracking-tight">
         Order Summary
       </h2>
@@ -80,7 +80,7 @@ export default function CheckoutSummary({
                 {line.name}
               </p>
               <p
-                className={`mt-1 text-[11px] font-semibold tracking-[0.1em] uppercase ${
+                className={`mt-1 text-[11px] font-semibold tracking-widest uppercase ${
                   line.qty > 0 ? "text-on-surface-variant" : "text-destructive"
                 }`}
               >
@@ -99,7 +99,7 @@ export default function CheckoutSummary({
           role="alert"
           className="border-destructive/40 bg-destructive/5 mt-6 border p-4"
         >
-          <p className="text-destructive text-[12px] font-semibold tracking-[0.1em] uppercase">
+          <p className="text-destructive text-[12px] font-semibold tracking-widest uppercase">
             Some pieces are no longer available
           </p>
           {notice && (
@@ -121,7 +121,7 @@ export default function CheckoutSummary({
                     <button
                       type="button"
                       onClick={() => setQty(line.productId, line.available)}
-                      className="text-foreground text-[12px] font-semibold tracking-[0.1em] uppercase underline underline-offset-4"
+                      className="text-foreground text-[12px] font-semibold tracking-widest uppercase underline underline-offset-4"
                     >
                       Reduce to {line.available}
                     </button>
@@ -129,7 +129,7 @@ export default function CheckoutSummary({
                   <button
                     type="button"
                     onClick={() => removeItem(line.productId)}
-                    className="text-on-surface-variant hover:text-foreground text-[12px] font-semibold tracking-[0.1em] uppercase underline underline-offset-4"
+                    className="text-on-surface-variant hover:text-foreground text-[12px] font-semibold tracking-widest uppercase underline underline-offset-4"
                   >
                     Remove
                   </button>
@@ -165,7 +165,7 @@ export default function CheckoutSummary({
       </dl>
 
       <div className="border-outline-variant/20 mt-6 flex items-baseline justify-between border-t pt-6">
-        <span className="text-foreground text-[12px] font-semibold tracking-[0.1em] uppercase">
+        <span className="text-foreground text-[12px] font-semibold tracking-widest uppercase">
           Total
         </span>
         <span className="text-foreground font-serif text-[32px] leading-none tabular-nums">
@@ -176,7 +176,7 @@ export default function CheckoutSummary({
       <button
         type="submit"
         disabled={pending || blocked || sellable.length === 0}
-        className="bg-foreground text-background hover:bg-secondary group mt-6 inline-flex w-full items-center justify-center gap-2 py-4 text-[12px] font-semibold tracking-[0.1em] uppercase transition-colors duration-300 disabled:pointer-events-none disabled:opacity-40"
+        className="bg-foreground text-background hover:bg-secondary group mt-6 inline-flex w-full items-center justify-center gap-2 py-4 text-[12px] font-semibold tracking-widest uppercase transition-colors duration-300 disabled:pointer-events-none disabled:opacity-40"
       >
         {pending ? (
           <>

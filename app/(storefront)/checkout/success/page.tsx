@@ -137,17 +137,17 @@ export default async function CheckoutSuccessPage({
           <h2 className="text-foreground font-serif text-[22px]">
             Keep track of this order
           </h2>
+          {/* Deliberately makes no promise about the email matching: the
+              order is attached from this browser's receipt cookie, not by
+              address, so it works even when checkout was completed without
+              one. */}
           <p className="text-on-surface-variant mt-2 text-[15px] leading-relaxed">
-            Create an account with{" "}
-            {order.guestEmail ? (
-              <span className="text-foreground">{order.guestEmail}</span>
-            ) : (
-              "the email you'd like to use"
-            )}{" "}
-            and this order — plus every future one — appears under My Orders.
+            Create an account and this order comes with it — plus every future
+            one — under My Orders. Any email will do; the order is carried
+            across from this browser.
           </p>
           <Link
-            href="/register"
+            href={`/register?claim=${encodeURIComponent(order.orderNumber)}`}
             className="bg-foreground text-background hover:bg-secondary mt-6 inline-flex items-center justify-center px-10 py-3.5 text-[12px] font-semibold tracking-[0.1em] uppercase transition-colors duration-300"
           >
             Create an account

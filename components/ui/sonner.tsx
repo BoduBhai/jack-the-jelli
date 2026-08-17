@@ -5,7 +5,13 @@ import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+  // Falls back to "light", not "system". No next-themes provider is mounted and
+  // nothing ever adds the `.dark` class, so the app renders light at every OS
+  // setting. Under "system" Sonner reads `prefers-color-scheme` on its own and
+  // switched to its dark palette while the toast kept the light `--popover`
+  // background set below — which is what made the description unreadable. Mount
+  // a ThemeProvider and this follows the app again without further changes.
+  const { theme = "light" } = useTheme()
 
   return (
     <Sonner
@@ -38,7 +44,16 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }
       toastOptions={{
         classNames: {
-          toast: "cn-toast",
+          // The description is the one slot Sonner colours with a hardcoded hex
+          // instead of the `--normal-*` vars above, so it has to be pinned here
+          // to stay on-palette: #444748 on #f9f8f6 is ~8.8:1, clearly secondary
+          // to the ~16:1 title but well past AA for 13px text.
+          //
+          // `!` is load-bearing. Sonner appends its stylesheet to <head> at
+          // runtime — after Tailwind's, and unlayered — so its
+          // `[data-description] { color }` rule outranks a plain utility class
+          // on both source order and layer precedence.
+          description: "text-on-surface-variant!",
         },
       }}
       {...props}

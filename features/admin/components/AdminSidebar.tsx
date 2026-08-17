@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import AppLink from "@/components/layout/AppLink";
 import React from "react";
 import { usePathname } from "next/navigation";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -57,7 +57,7 @@ function NavItems() {
       {navItems.map((item) => {
         const isActive = activeHref === item.href;
         return (
-          <Link
+          <AppLink
             key={item.href}
             href={item.href}
             className={`group flex items-center gap-4 py-3 pl-4 transition-all duration-300 ${
@@ -70,7 +70,7 @@ function NavItems() {
             <span className="text-[12px] leading-none font-(--font-inter) tracking-widest uppercase">
               {item.label}
             </span>
-          </Link>
+          </AppLink>
         );
       })}
     </div>
@@ -86,7 +86,7 @@ function ViewStorefrontButton() {
         variant="outline"
         className="border-primary text-primary hover:bg-primary hover:text-primary-foreground w-full justify-center rounded-none border px-4 py-5 text-[11px] font-(--font-inter) tracking-[0.18em] uppercase transition-colors"
       >
-        <Link href="/">View Storefront</Link>
+        <AppLink href="/">View Storefront</AppLink>
       </Button>
     </div>
   );

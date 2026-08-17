@@ -1,4 +1,4 @@
-import Link from "next/link";
+import AppLink from "@/components/layout/AppLink";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -105,11 +105,11 @@ export default function OrderTable({
                   variant="outline"
                   className="border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-none bg-transparent text-sm tracking-wider uppercase"
                 >
-                  <Link
+                  <AppLink
                     href={`/admin/orders/${encodeURIComponent(order.orderNumber)}`}
                   >
                     View Details
-                  </Link>
+                  </AppLink>
                 </Button>
               </TableCell>
             </TableRow>

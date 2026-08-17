@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import AppLink from "@/components/layout/AppLink";
 import Logo from "@/components/layout/Logo";
 import UserMenu from "@/components/layout/UserMenu";
 import CartButton from "@/features/cart/components/CartButton";
@@ -30,14 +30,14 @@ export default function NavBar() {
       }`}
     >
       <div className="relative mx-auto flex h-full max-w-360 items-center justify-center px-5 md:px-16">
-        <Link
+        <AppLink
           href="/"
           aria-label="Jack The Jelli — Home"
           className="block h-10 transition-opacity hover:opacity-80 md:h-12"
         >
           {/* The link already carries the brand name. */}
           <Logo priority alt="" />
-        </Link>
+        </AppLink>
 
         <div className="absolute right-5 flex items-center gap-4 md:right-16 md:gap-6">
           <UserMenu />

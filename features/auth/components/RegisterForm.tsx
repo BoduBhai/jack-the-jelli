@@ -8,6 +8,7 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import GoogleButton from "@/features/auth/components/GoogleButton";
+import { claimReceiptOrder } from "@/features/checkout/lib/claim-actions";
 import { registerSchema } from "@/features/auth/lib/auth-schema";
 import {
   boxedInputClassName,
@@ -28,7 +29,20 @@ const REGISTER_ERROR_MESSAGES: Record<string, string> = {
     "We couldn't create your account. Try again in a moment.",
 };
 
-export default function RegisterForm() {
+interface RegisterFormProps {
+  /**
+   * An order number this browser holds a receipt for, already verified by the
+   * page. When present, sign-up attaches that order to the new account.
+   */
+  claimOrder?: string;
+  /** The address given at checkout, when there was one. */
+  defaultEmail?: string;
+}
+
+export default function RegisterForm({
+  claimOrder,
+  defaultEmail,
+}: RegisterFormProps) {
   const router = useRouter();
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -64,7 +78,10 @@ export default function RegisterForm() {
       email: parsed.data.email,
       password: parsed.data.password,
       phone: parsed.data.phone,
-      callbackURL: "/verify-email",
+      // Where the emailed link lands. The claim flag has to ride along here
+      // too — verification often happens later, in a tab that never saw the
+      // push below.
+      callbackURL: claimOrder ? "/verify-email?claimed=1" : "/verify-email",
     });
 
     setIsPending(false);
@@ -87,10 +104,25 @@ export default function RegisterForm() {
       return;
     }
 
+    // Attach the order now, while the receipt cookie is still in this browser
+    // and the account is seconds old — not on first sign-in, which may be
+    // hours later on a different device.
+    let claimed = false;
+    if (claimOrder) {
+      try {
+        ({ claimed } = await claimReceiptOrder(claimOrder, parsed.data.email));
+      } catch {
+        // The account was created; failing to attach the order must not read
+        // as a failed sign-up. /track still finds it by number and phone.
+      }
+    }
+
     // requireEmailVerification means sign-up does not create a session —
     // the account exists but can't sign in until the emailed link is
     // clicked, so send them to check their inbox instead of the homepage.
-    router.push(`/verify-email?email=${encodeURIComponent(parsed.data.email)}`);
+    const query = new URLSearchParams({ email: parsed.data.email });
+    if (claimed) query.set("claimed", "1");
+    router.push(`/verify-email?${query}`);
   }
 
   return (
@@ -102,6 +134,15 @@ export default function RegisterForm() {
         <h1 className="font-heading text-3xl tracking-widest">
           Create Account
         </h1>
+        {claimOrder && (
+          <p className="text-muted-foreground mt-3 text-sm">
+            Order{" "}
+            <span className="text-foreground tracking-[0.08em]">
+              {claimOrder}
+            </span>{" "}
+            will be moved into this account.
+          </p>
+        )}
         {formError && (
           <p
             role="alert"
@@ -138,6 +179,7 @@ export default function RegisterForm() {
             name="email"
             type="email"
             autoComplete="email"
+            defaultValue={defaultEmail}
             aria-invalid={Boolean(errors.email)}
             placeholder="jane@example.com"
             className={boxedInputClassName}
@@ -194,7 +236,15 @@ export default function RegisterForm() {
         <div className="border-border h-px flex-1 border-t" />
       </div>
 
-      <GoogleButton />
+      {/* Google returns with a session but no way to run the claim inline, so
+          it lands on /claim, which does it and forwards to My Orders. */}
+      <GoogleButton
+        callbackURL={
+          claimOrder
+            ? `/claim?order=${encodeURIComponent(claimOrder)}`
+            : undefined
+        }
+      />
 
       <p className="text-muted-foreground text-center text-sm">
         Already have an account?{" "}

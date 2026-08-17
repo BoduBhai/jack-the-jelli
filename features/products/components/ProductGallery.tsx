@@ -46,7 +46,13 @@ export default function ProductGallery({ images, alt }: ProductGalleryProps) {
         <CarouselContent className="ml-0">
           {images.map((image, i) => (
             <CarouselItem key={`${image.url}-${i}`} className="pl-0">
-              <div className="bg-surface-container relative aspect-4/5 overflow-hidden">
+              {/* Page background, not `surface-container`. The reference design
+                  puts a surface panel behind these images, but that assumes the
+                  photo fills the box — under object-contain a non-4:5 source
+                  leaves the panel showing as two grey bars. Matching the page
+                  instead lets the photo sit in open space, which is what the
+                  surface was standing in for. */}
+              <div className="bg-background relative aspect-4/5 overflow-hidden">
                 <Image
                   src={image.url}
                   alt={
@@ -59,8 +65,14 @@ export default function ProductGallery({ images, alt }: ProductGalleryProps) {
                   // note in next/image's docs (priority is deprecated in 16).
                   loading={i === 0 ? "eager" : "lazy"}
                   fetchPriority={i === 0 ? "high" : "auto"}
-                  sizes="(min-width: 1024px) 60vw, 100vw"
-                  className="object-cover"
+                  // Above the 1440px container cap the slot stops being 60vw —
+                  // it settles at a fixed ~758px — so keep declaring 60vw there
+                  // and the browser fetches roughly twice the pixels it needs.
+                  sizes="(min-width: 1440px) 760px, (min-width: 1024px) 60vw, 100vw"
+                  // contain, not cover: the whole photo has to be visible on
+                  // this page, so the 4:5 box mats the image rather than
+                  // cropping it to fit.
+                  className="object-contain"
                 />
               </div>
             </CarouselItem>
@@ -103,8 +115,12 @@ export default function ProductGallery({ images, alt }: ProductGalleryProps) {
                 src={image.url}
                 alt=""
                 fill
-                sizes="120px"
-                className="object-cover"
+                // 120px only holds for the 6-column desktop strip; the mobile
+                // strip is 4 columns of a much narrower gallery.
+                sizes="(min-width: 1024px) 120px, (min-width: 640px) 16vw, 25vw"
+                // Matches the slide it selects — a cropped thumbnail would
+                // preview a framing the main image never shows.
+                className="object-contain"
               />
             </button>
           ))}

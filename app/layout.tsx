@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { EB_Garamond, Inter } from "next/font/google";
 import "./globals.css";
+import RouteProgress from "@/components/layout/RouteProgress";
 import { Toaster } from "@/components/ui/sonner";
 
 const garamond = EB_Garamond({
@@ -35,6 +36,9 @@ export default function RootLayout({
         {/* Storefront chrome (nav + footer) lives in app/(storefront)/layout.tsx
             so /admin opts out by route rather than by a pathname check. */}
         {children}
+        {/* Mounted at the root, above every route group, so one bar serves the
+            storefront, the auth pages and /admin alike. */}
+        <RouteProgress />
         <Toaster />
       </body>
     </html>

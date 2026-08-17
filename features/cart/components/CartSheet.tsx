@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import AppLink from "@/components/layout/AppLink";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { ArrowRight } from "lucide-react";
@@ -94,13 +94,13 @@ export default function CartSheet() {
             <p className="text-on-surface-variant text-[16px] leading-relaxed">
               Nothing here yet. Every piece is made in small numbers.
             </p>
-            <Link
+            <AppLink
               href="/collection"
               onClick={closeCart}
               className="border-foreground text-foreground hover:bg-foreground hover:text-background inline-flex items-center justify-center border px-8 py-3.5 text-[12px] font-semibold tracking-[0.1em] uppercase transition-colors duration-300"
             >
               Browse the collection
-            </Link>
+            </AppLink>
           </div>
         ) : (
           <>
@@ -144,7 +144,7 @@ export default function CartSheet() {
                   Checkout
                 </span>
               ) : (
-                <Link
+                <AppLink
                   href="/checkout"
                   onClick={closeCart}
                   className="bg-foreground text-background hover:bg-secondary group mt-5 inline-flex w-full items-center justify-center gap-2 py-4 text-[12px] font-semibold tracking-[0.1em] uppercase transition-colors duration-300"
@@ -154,7 +154,7 @@ export default function CartSheet() {
                     className="size-4 transition-transform duration-300 group-hover:translate-x-1"
                     aria-hidden="true"
                   />
-                </Link>
+                </AppLink>
               )}
 
               <button

@@ -7,13 +7,13 @@ export const metadata: Metadata = {
 };
 
 interface VerifyEmailPageProps {
-  searchParams: Promise<{ email?: string; error?: string }>;
+  searchParams: Promise<{ email?: string; error?: string; claimed?: string }>;
 }
 
 export default async function VerifyEmailPage({
   searchParams,
 }: VerifyEmailPageProps) {
-  const { email, error } = await searchParams;
+  const { email, error, claimed } = await searchParams;
   // Resolved here rather than from authClient.useSession() in the client
   // component: Better Auth's verify-email endpoint redirects here with the
   // session cookie already set, so the very first render can show the verified
@@ -26,6 +26,9 @@ export default async function VerifyEmailPage({
       email={email ?? session?.user.email}
       error={error}
       verified={session?.user.emailVerified === true}
+      // Purely presentational — the order was already attached at sign-up, so
+      // a hand-edited flag changes nothing but the copy.
+      claimed={claimed === "1"}
     />
   );
 }

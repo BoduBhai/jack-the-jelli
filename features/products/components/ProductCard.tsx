@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import AppLink from "@/components/layout/AppLink";
 import AddToCartButton from "@/features/products/components/AddToCartButton";
 import { formatPrice } from "@/features/products/lib/format";
 import { Product } from "@/features/products/lib/types";
@@ -21,7 +21,7 @@ export default function ProductCard({
 
   if (variant === "quiet") {
     return (
-      <Link
+      <AppLink
         href={href}
         className="focus-visible:outline-foreground group block focus-visible:outline-2 focus-visible:outline-offset-4"
       >
@@ -45,13 +45,13 @@ export default function ProductCard({
             {formatPrice(product.price)}
           </p>
         </div>
-      </Link>
+      </AppLink>
     );
   }
 
   return (
     <div className="group">
-      <Link href={href} tabIndex={-1} aria-hidden="true">
+      <AppLink href={href} tabIndex={-1} aria-hidden="true">
         <div className="bg-surface-container relative aspect-4/5 overflow-hidden">
           <Image
             src={product.thumbnail || "/image-placeholder.jpg"}
@@ -64,7 +64,7 @@ export default function ProductCard({
             className="object-cover transition-transform duration-700 group-hover:scale-105"
           />
         </div>
-      </Link>
+      </AppLink>
 
       <div className="mt-4 text-center">
         <h3 className="text-foreground font-serif text-[18px] leading-[1.6]">
@@ -77,12 +77,12 @@ export default function ProductCard({
 
       <div className="mt-4 grid grid-cols-2 gap-2">
         <AddToCartButton product={product} />
-        <Link
+        <AppLink
           href={href}
           className="border-secondary text-foreground hover:bg-secondary hover:text-background inline-flex items-center justify-center rounded-none border bg-transparent px-3 py-3 text-[12px] font-semibold tracking-widest uppercase transition-colors duration-300"
         >
           View details
-        </Link>
+        </AppLink>
       </div>
     </div>
   );

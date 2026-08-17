@@ -1,4 +1,4 @@
-import Link from "next/link";
+import AppLink from "@/components/layout/AppLink";
 import { ArrowLeft } from "lucide-react";
 import { getStockStatus } from "@/features/products/lib/stock";
 import AddToCartButton from "@/features/products/components/AddToCartButton";
@@ -33,53 +33,64 @@ export default function ProductDetailView({
 
   return (
     <div className="mx-auto max-w-360 px-5 pt-32 pb-32 md:px-16 md:pt-40">
-      {/* Above the gallery on every breakpoint — kept out of the sticky panel
-          so it doesn't fall below the image when the columns stack on mobile. */}
-      <Link
-        href="/collection"
-        className="text-on-surface-variant hover:text-foreground mb-8 inline-flex w-fit items-center gap-2 text-[12px] font-semibold tracking-[0.1em] uppercase transition-colors duration-300"
-      >
-        <ArrowLeft className="size-4" aria-hidden="true" />
-        The Collections
-      </Link>
+      {/* Bound by viewport *height*, not by column width. The gallery is
+          ~60% of this row minus the 3rem gutter, and aspect-4/5 turns that
+          width into a height 1.25× larger — so left uncapped it renders a
+          948px slide under 211px of chrome, taller than any ordinary screen,
+          and the photo can never be seen whole. Inverting that relationship
+          (row ≤ height × 4/3 + gutter) makes one slide fit one screen.
+          Wraps the back link too, so it stays aligned with the columns.
+          `svh` so a collapsing mobile URL bar doesn't overshoot; above ~2K the
+          cap exceeds the 1440px container and goes inert. */}
+      <div className="lg:mx-auto lg:max-w-[calc((100svh-14rem)*4/3+3rem)]">
+        {/* Above the gallery on every breakpoint — kept out of the sticky panel
+            so it doesn't fall below the image when the columns stack on mobile. */}
+        <AppLink
+          href="/collection"
+          className="text-on-surface-variant hover:text-foreground mb-8 inline-flex w-fit items-center gap-2 text-[12px] font-semibold tracking-[0.1em] uppercase transition-colors duration-300"
+        >
+          <ArrowLeft className="size-4" aria-hidden="true" />
+          The Collections
+        </AppLink>
 
-      <div className="flex flex-col gap-10 lg:flex-row lg:gap-12">
-        <div className="w-full lg:w-3/5">
-          <ProductGallery images={images} alt={product.name} />
-        </div>
+        <div className="flex flex-col gap-10 lg:flex-row lg:gap-12">
+          <div className="w-full lg:w-3/5">
+            <ProductGallery images={images} alt={product.name} />
+          </div>
 
-        <div className="w-full lg:w-2/5">
-          <div className="flex flex-col lg:sticky lg:top-32">
-            <p className="text-on-surface-variant text-[12px] font-semibold tracking-[0.1em] uppercase">
-              {product.category}
-            </p>
-            <h1 className="text-foreground mt-2 font-serif text-[40px] leading-[1.2] tracking-tight md:text-[56px] md:leading-[1.1]">
-              {product.name}
-            </h1>
-            <p className="text-foreground mt-4 text-[18px] leading-[1.6]">
-              {formatPrice(product.price)}
-            </p>
-
-            {product.description && (
-              <div className="border-outline-variant/20 mt-8 border-t pt-6">
-                <p className="text-on-surface-variant text-[16px] leading-[1.6]">
-                  {product.description}
-                </p>
-              </div>
-            )}
-
-            <div className="mt-8 flex flex-col gap-4">
-              <p className="text-on-surface-variant flex items-center gap-2 text-[12px] font-semibold tracking-[0.1em] uppercase">
-                <span
-                  aria-hidden="true"
-                  className={`size-2 ${soldOut ? "bg-outline-variant" : "bg-foreground"}`}
-                />
-                {stockLabel(product.stock)}
+          <div className="w-full lg:w-2/5">
+            <div className="flex flex-col lg:sticky lg:top-32">
+              <p className="text-on-surface-variant text-[12px] font-semibold tracking-[0.1em] uppercase">
+                {product.category}
               </p>
-              <AddToCartButton product={product} variant="detail" />
-            </div>
+              <h1 className="text-foreground mt-2 font-serif text-[40px] leading-[1.2] tracking-tight md:text-[56px] md:leading-[1.1]">
+                {product.name}
+              </h1>
+              <p className="text-foreground mt-4 text-[18px] leading-[1.6]">
+                {formatPrice(product.price)}
+              </p>
 
-            <ProductSpecList sku={product.sku} category={product.category} />
+              {product.description && (
+                <div className="border-outline-variant/20 mt-8 border-t pt-6">
+                  <p className="text-on-surface-variant text-[16px] leading-[1.6]">
+                    {product.description}
+                  </p>
+                </div>
+              )}
+
+              <div className="mt-8 flex flex-col gap-4">
+                <p className="text-on-surface-variant flex items-center gap-2 text-[12px] font-semibold tracking-[0.1em] uppercase">
+                  <span
+                    aria-hidden="true"
+                    className={`size-2 ${soldOut ? "bg-outline-variant" : "bg-foreground"}`}
+                  />
+                  {stockLabel(product.stock)}
+                </p>
+                <AddToCartButton product={product} variant="detail" />
+              </div>
+
+              <ProductSpecList sku={product.sku} category={product.category} />
+            </div>
           </div>
         </div>
       </div>

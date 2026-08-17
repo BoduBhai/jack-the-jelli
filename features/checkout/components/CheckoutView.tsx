@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import Link from "next/link";
+import AppLink from "@/components/layout/AppLink";
 import { Truck } from "lucide-react";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -98,12 +98,12 @@ export default function CheckoutView({
             ? "The last of your pieces sold out or was withdrawn before you could order it. Nothing was placed."
             : "Your cart is empty. Every piece is made in small numbers — the collection is worth a look."}
         </p>
-        <Link
+        <AppLink
           href="/collection"
           className="border-foreground text-foreground hover:bg-foreground hover:text-background mt-10 inline-flex items-center justify-center border px-10 py-4 text-[12px] font-semibold tracking-[0.1em] uppercase transition-colors duration-300"
         >
           Browse the collection
-        </Link>
+        </AppLink>
       </div>
     );
   }

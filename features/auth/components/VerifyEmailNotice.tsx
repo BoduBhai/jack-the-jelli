@@ -40,12 +40,15 @@ interface VerifyEmailNoticeProps {
   email?: string;
   error?: string;
   verified: boolean;
+  /** An order was attached to this account during sign-up. Copy only. */
+  claimed?: boolean;
 }
 
 export default function VerifyEmailNotice({
   email: initialEmail,
   error,
   verified,
+  claimed = false,
 }: VerifyEmailNoticeProps) {
   const [email, setEmail] = useState(initialEmail ?? "");
   const [sent, setSent] = useState(false);
@@ -86,13 +89,19 @@ export default function VerifyEmailNotice({
           Email Verified
         </h1>
         <p className="text-muted-foreground text-sm">
-          Your account is ready. Welcome to Jack The Jelli.
+          {claimed
+            ? "Your account is ready, and your order is waiting inside it."
+            : "Your account is ready. Welcome to Jack The Jelli."}
         </p>
         <Button
           asChild
           className="h-12 rounded-none text-sm tracking-widest uppercase"
         >
-          <Link href="/">Continue Shopping</Link>
+          {/* Someone who just verified in order to keep an order should land
+              on the order, not on the homepage. */}
+          <Link href={claimed ? "/my-orders" : "/"}>
+            {claimed ? "View My Orders" : "Continue Shopping"}
+          </Link>
         </Button>
       </div>
     );
@@ -112,6 +121,13 @@ export default function VerifyEmailNotice({
             ? `We sent a verification link to ${initialEmail}. Click it to activate your account.`
             : "We sent a verification link to your email. Click it to activate your account."}
       </p>
+
+      {claimed && !failure && (
+        <p className="text-on-surface-variant text-sm">
+          Your order is already attached — it will be under My Orders as soon as
+          you verify.
+        </p>
+      )}
 
       {sent ? (
         <p className="text-sm">Verification email sent — check your inbox.</p>

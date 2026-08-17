@@ -156,6 +156,29 @@ export const ORDER_STATUS_COPY: Record<OrderStatus, StatusCopy> = {
   },
 };
 
+/**
+ * How a status should *read* on a customer surface, as opposed to what it means
+ * operationally: an order still moving, one that arrived, or one that stopped.
+ *
+ * Every customer-facing screen was deriving this by hand — /my-orders with a
+ * `Cancelled ? destructive : muted` ternary, OrderTimeline with its own branch —
+ * so a new terminal status would have had to be remembered in each of them.
+ * Deliberately semantic rather than a class string: the Tailwind vocabulary
+ * differs between the storefront and the admin panel, so only the meaning is
+ * shared and each surface picks its own colours from it.
+ */
+export type OrderStatusTone = "live" | "complete" | "halted";
+
+export const ORDER_STATUS_TONE: Record<OrderStatus, OrderStatusTone> = {
+  Draft: "live",
+  Pending: "live",
+  Confirmed: "live",
+  Shipped: "live",
+  Delivered: "complete",
+  Cancelled: "halted",
+  Returned: "halted",
+};
+
 interface PaymentCopy {
   /** Admin wording — the operator needs the collection state, not a euphemism. */
   admin: string;

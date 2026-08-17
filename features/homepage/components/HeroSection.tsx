@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useInView } from "@/lib/hooks/useInView";
-import Link from "next/link";
+import AppLink from "@/components/layout/AppLink";
 import heroImage from "@/public/hero-image.webp";
 
 export default function HeroSection() {
@@ -62,12 +62,12 @@ export default function HeroSection() {
           ref={ref3}
           className={`transition-all delay-200 duration-1000 ${vis3 ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}
         >
-          <Link
+          <AppLink
             href="/collection"
             className="bg-foreground text-background hover:bg-foreground/90 inline-flex items-center justify-center rounded-none px-10 py-4 text-[12px] font-semibold tracking-widest uppercase transition-colors duration-300"
           >
             Explore Collection
-          </Link>
+          </AppLink>
         </div>
       </div>
     </header>

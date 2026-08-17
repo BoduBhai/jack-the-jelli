@@ -1,4 +1,5 @@
 import NavBar from "@/components/layout/NavBar";
+import PageFade from "@/components/layout/PageFade";
 import Footer from "@/features/homepage/components/Footer";
 
 /**
@@ -17,7 +18,11 @@ export default function StorefrontLayout({
   return (
     <>
       <NavBar />
-      <main className="flex-1">{children}</main>
+      {/* Inside <main>, not around it: the fade wrapper remounts on every route
+          change, and the landmark itself has to stay put. */}
+      <main className="flex-1">
+        <PageFade>{children}</PageFade>
+      </main>
       <Footer />
     </>
   );

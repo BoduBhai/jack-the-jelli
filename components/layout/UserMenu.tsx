@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import AppLink from "@/components/layout/AppLink";
 import { User } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -77,13 +77,13 @@ export default function UserMenu() {
         variant="outline"
         className="hover:bg-secondary border-secondary h-8 rounded-none border bg-transparent text-xs tracking-widest uppercase hover:text-white max-sm:px-2"
       >
-        <Link href="/login">
+        <AppLink href="/login">
           <User className="size-4" aria-hidden="true" />
           {/* The word costs ~55px, which is enough to run this cluster into the
               centred logo at 320px. sr-only drops it out of flow below 40rem
               while keeping "Login" as the link's accessible name. */}
           <span className="max-sm:sr-only">Login</span>
-        </Link>
+        </AppLink>
       </Button>
     );
   }
@@ -133,14 +133,14 @@ export default function UserMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/account">Account</Link>
+          <AppLink href="/account">Account</AppLink>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/my-orders">Orders</Link>
+          <AppLink href="/my-orders">Orders</AppLink>
         </DropdownMenuItem>
         {user.role === "admin" && (
           <DropdownMenuItem asChild>
-            <Link href="/admin">Admin Panel</Link>
+            <AppLink href="/admin">Admin Panel</AppLink>
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
