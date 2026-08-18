@@ -1,6 +1,3 @@
-"use client";
-
-import { useState, useEffect } from "react";
 import AppLink from "@/components/layout/AppLink";
 import Logo from "@/components/layout/Logo";
 import UserMenu from "@/components/layout/UserMenu";
@@ -8,27 +5,16 @@ import CartButton from "@/features/cart/components/CartButton";
 import CartSessionSync from "@/features/cart/components/CartSessionSync";
 import CartSheet from "@/features/cart/components/CartSheet";
 
+/**
+ * A server component: the blurred background is unconditional now, so nothing
+ * here needs scroll position or any other browser state. Every interactive
+ * piece below (UserMenu, CartButton, CartSheet, CartSessionSync) carries its
+ * own "use client", and they coordinate through the module-level cart store
+ * rather than a shared context, so each can be its own client root.
+ */
 export default function NavBar() {
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
-    // Run once on mount: a reload part-way down the page starts scrolled, and
-    // the listener alone wouldn't fire until the next scroll.
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
   return (
-    <nav
-      // Naming the two transitioned properties rather than transition-all is
-      // load-bearing: all would animate scrollbar-lock-safe's margin over 500ms
-      // while the scrollbar vanishes instantly, trading the jump for a drift.
-      className={`border-border scrollbar-lock-safe fixed inset-x-0 top-0 z-50 h-24 border-b transition-[background-color,backdrop-filter] duration-500 ${
-        scrolled ? "bg-background/60 backdrop-blur-md" : "bg-transparent"
-      }`}
-    >
+    <nav className="border-border scrollbar-lock-safe bg-background/60 fixed inset-x-0 top-0 z-50 h-24 border-b backdrop-blur-md">
       <div className="relative mx-auto flex h-full max-w-360 items-center justify-center px-5 md:px-16">
         <AppLink
           href="/"

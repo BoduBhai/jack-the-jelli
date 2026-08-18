@@ -81,9 +81,7 @@ export default function OrderTable({
                 </div>
               </TableCell>
               <TableCell className="py-8">
-                <div className="text-foreground font-medium">
-                  {order.customerName}
-                </div>
+                <div className="text-foreground">{order.customerName}</div>
                 <div className="text-muted-foreground mt-1 text-xs font-semibold tracking-widest">
                   {formatBdPhone(order.customerPhone)}
                 </div>

@@ -104,7 +104,7 @@ export default function DeleteCustomerDialog({
         <div className="border-border bg-muted/50 border p-4 text-sm">
           {orderCount > 0 ? (
             <p className="text-muted-foreground">
-              <span className="text-foreground font-medium">
+              <span className="text-foreground">
                 {orderCount} order{orderCount === 1 ? "" : "s"}
               </span>{" "}
               stay on the books, keeping the name, phone and delivery address

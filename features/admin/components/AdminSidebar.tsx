@@ -62,7 +62,7 @@ function NavItems() {
             href={item.href}
             className={`group flex items-center gap-4 py-3 pl-4 transition-all duration-300 ${
               isActive
-                ? "text-primary border-primary translate-x-1 border-l-2 font-bold"
+                ? "text-primary border-primary translate-x-1 border-l-2 font-semibold"
                 : "text-on-surface-variant hover:bg-surface-container-highest"
             }`}
           >

@@ -238,7 +238,7 @@ export default function ProductEditor({
       <main className="bg-surface flex flex-1 flex-col md:flex-row">
         <div className="w-full px-4 py-8 md:w-2/5 md:px-16 md:py-12">
           <div className="mb-8">
-            <h3 className="font-heading text-foreground text-2xl font-medium">
+            <h3 className="font-heading text-foreground text-2xl">
               Product Media
             </h3>
             <p className="text-muted-foreground mt-1 text-sm">

@@ -10,11 +10,13 @@ import "./globals.css";
  * next/link. Every import this file doesn't have is a failure mode it can't
  * inherit, and by the time it renders the root layout has already failed.
  *
- * No next/font either: `--font-serif` is undefined app-wide, so `font-serif`
- * resolves to Georgia here exactly as it does on every other page. Body copy
- * falls back to the system sans instead of Inter — a difference nobody will
- * notice on a screen this rare, and worth it for a boundary with no font
- * machinery to break.
+ * No next/font either, which makes this the one page where the type differs:
+ * `--font-garamond` is only set on the root layout's <html>, so the
+ * `var(--font-garamond, Georgia)` behind `font-serif` falls to Georgia here
+ * while every other page gets EB Garamond. Body copy lands on the system sans
+ * instead of Inter for the same reason. Both are deliberate — a difference
+ * nobody will notice on a screen this rare, and worth it for a boundary with
+ * no font machinery to break.
  *
  * `metadata` is not supported in a Client Component, so the tab title is set
  * with React's <title> element instead.

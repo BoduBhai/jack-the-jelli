@@ -26,9 +26,7 @@ export default function StockIndicator({ count }: StockIndicatorProps) {
       : `${count} ${status === "low-stock" ? "LOW STOCK" : "IN STOCK"}`;
 
   return (
-    <span
-      className={`flex items-center gap-2 text-sm font-medium ${style.text}`}
-    >
+    <span className={`flex items-center gap-2 text-sm ${style.text}`}>
       <span className={`size-1.5 rounded-full ${style.dot}`} />
       {label}
     </span>

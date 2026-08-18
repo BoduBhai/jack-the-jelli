@@ -34,7 +34,7 @@ export default function ProductDetailsForm({
   return (
     <div className="flex flex-col gap-12 sm:gap-20 md:gap-32">
       <section>
-        <h3 className="border-border font-heading text-foreground mb-8 border-b pb-4 text-2xl font-medium">
+        <h3 className="border-border font-heading text-foreground mb-8 border-b pb-4 text-2xl">
           Basic Information
         </h3>
         <div className="flex flex-col gap-12">
@@ -115,7 +115,7 @@ export default function ProductDetailsForm({
       </section>
 
       <section>
-        <h3 className="border-border font-heading text-foreground mb-8 border-b pb-4 text-2xl font-medium">
+        <h3 className="border-border font-heading text-foreground mb-8 border-b pb-4 text-2xl">
           Product Description
         </h3>
         <Field data-invalid={Boolean(errors?.description) || undefined}>

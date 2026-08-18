@@ -46,7 +46,7 @@ export default async function AdminOrderDetailPage({
               Back to Orders
             </span>
           </Link>
-          <h1 className="font-heading text-foreground text-2xl font-medium tracking-wide">
+          <h1 className="font-heading text-foreground text-2xl tracking-wide">
             Order {order.orderNumber}
           </h1>
           <p className="text-muted-foreground text-sm">

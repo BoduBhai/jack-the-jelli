@@ -25,9 +25,7 @@ export default function OrderItemsPanel({
     <section className="border-border space-y-6 border p-6">
       <div className="flex items-end justify-between">
         <div>
-          <h2 className="font-heading text-foreground text-lg font-medium">
-            Order Items
-          </h2>
+          <h2 className="font-heading text-foreground text-lg">Order Items</h2>
           <div className="bg-border mt-2 h-px w-16" />
         </div>
         <p className="text-muted-foreground/80 text-xs font-semibold tracking-widest uppercase">
@@ -60,7 +58,7 @@ export default function OrderItemsPanel({
               <p className="text-muted-foreground/40 mb-1 text-[10px] font-semibold tracking-widest uppercase">
                 SKU: {item.sku}
               </p>
-              <h3 className="font-heading text-foreground text-base font-medium">
+              <h3 className="font-heading text-foreground text-base">
                 {item.name}
               </h3>
               <p className="text-muted-foreground mt-0.5 text-sm">
@@ -84,7 +82,7 @@ export default function OrderItemsPanel({
           <div className="w-full space-y-3 md:w-72">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Subtotal</span>
-              <span className="text-foreground font-medium">
+              <span className="text-foreground">
                 {formatPrice(order.subtotal)}
               </span>
             </div>
@@ -92,7 +90,7 @@ export default function OrderItemsPanel({
               <span className="text-muted-foreground">
                 Delivery ({order.shippingAddress.district})
               </span>
-              <span className="text-foreground font-medium">
+              <span className="text-foreground">
                 {order.deliveryFee === 0
                   ? "Free"
                   : formatPrice(order.deliveryFee)}
@@ -104,7 +102,7 @@ export default function OrderItemsPanel({
             <span className="text-foreground text-xs font-semibold tracking-widest uppercase">
               Total to collect
             </span>
-            <span className="font-heading text-foreground ml-6 text-3xl font-medium">
+            <span className="font-heading text-foreground ml-6 text-3xl">
               {formatPrice(order.totalAmount)}
             </span>
           </div>

@@ -124,7 +124,7 @@ export default function OrderStatusControls({
                     className="accent-foreground mt-0.5 size-4 shrink-0 rounded-none"
                   />
                   <span>
-                    <span className="text-foreground block text-sm font-medium">
+                    <span className="text-foreground block text-sm">
                       Return {unitCount} unit{unitCount === 1 ? "" : "s"} to
                       sellable stock
                     </span>

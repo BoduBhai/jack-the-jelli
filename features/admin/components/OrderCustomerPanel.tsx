@@ -18,7 +18,7 @@ export default function OrderCustomerPanel({ order }: { order: OrderDTO }) {
         <p className="text-muted-foreground/80 text-xs font-semibold tracking-widest uppercase">
           Recipient
         </p>
-        <p className="font-heading text-foreground text-xl font-medium">
+        <p className="font-heading text-foreground text-xl">
           {address.fullName}
         </p>
         {/* The details below are the snapshot taken at checkout, so they
