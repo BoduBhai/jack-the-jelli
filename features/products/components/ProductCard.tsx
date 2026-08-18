@@ -19,13 +19,24 @@ export default function ProductCard({
 }) {
   const href = `/collection/${product.slug}`;
 
+  /*
+   * Both variants frame the image the same way: a square box, object-contain.
+   * Square because a wallet is a landscape-shaped object -- the old aspect-4/5
+   * was an apparel proportion that spent most of the card on empty space.
+   * contain rather than cover because the source photos are not all one shape
+   * (4:3, 3:4, 1:1 all exist in the catalogue today), and cover resolved that
+   * by slicing up to 40% off the widest ones. Once every photo is shot to the
+   * 1:1 spec in CLAUDE.md the two render identically, so this costs nothing
+   * then and still fails safe if an off-spec file is ever uploaded.
+   */
+
   if (variant === "quiet") {
     return (
       <AppLink
         href={href}
         className="focus-visible:outline-foreground group block focus-visible:outline-2 focus-visible:outline-offset-4"
       >
-        <div className="bg-surface-container relative aspect-4/5 overflow-hidden">
+        <div className="bg-surface-container relative aspect-square overflow-hidden">
           <Image
             src={product.thumbnail || "/image-placeholder.jpg"}
             alt={product.name}
@@ -33,7 +44,7 @@ export default function ProductCard({
             // Always below the fold where this variant is used.
             loading="lazy"
             sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 70vw"
-            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            className="object-contain transition-transform duration-700 group-hover:scale-105"
           />
         </div>
 
@@ -52,7 +63,7 @@ export default function ProductCard({
   return (
     <div className="group">
       <AppLink href={href} tabIndex={-1} aria-hidden="true">
-        <div className="bg-surface-container relative aspect-4/5 overflow-hidden">
+        <div className="bg-surface-container relative aspect-square overflow-hidden">
           <Image
             src={product.thumbnail || "/image-placeholder.jpg"}
             alt={product.name}
@@ -61,7 +72,7 @@ export default function ProductCard({
             loading={priority ? "eager" : "lazy"}
             fetchPriority={priority ? "high" : "auto"}
             sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            className="object-contain transition-transform duration-700 group-hover:scale-105"
           />
         </div>
       </AppLink>
