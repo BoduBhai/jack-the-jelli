@@ -48,11 +48,16 @@ export default function ProductGallery({ images, alt }: ProductGalleryProps) {
             <CarouselItem key={`${image.url}-${i}`} className="pl-0">
               {/* Page background, not `surface-container`. The reference design
                   puts a surface panel behind these images, but that assumes the
-                  photo fills the box — under object-contain a non-4:5 source
-                  leaves the panel showing as two grey bars. Matching the page
-                  instead lets the photo sit in open space, which is what the
-                  surface was standing in for. */}
-              <div className="bg-background relative aspect-4/5 overflow-hidden">
+                  photo fills the box — under object-contain a non-square source
+                  leaves the panel showing as bars. Matching the page instead
+                  lets the photo sit in open space, which is what the surface
+                  was standing in for.
+                  aspect-square matches ProductCard and the mandated 1:1 upload
+                  spec. The height cap lives here (not on the row) so a short
+                  viewport only shrinks the image, not the info column next to
+                  it — `svh` so a collapsing mobile URL bar doesn't overshoot;
+                  above ~2K the cap exceeds the column width and goes inert. */}
+              <div className="bg-background relative aspect-square overflow-hidden lg:mx-auto lg:max-w-[calc(100svh-14rem)]">
                 <Image
                   src={image.url}
                   alt={

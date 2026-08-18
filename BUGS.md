@@ -29,24 +29,13 @@ Running list of bugs found on the live site. Not fixed yet — logged only.
 
 ## 2. Product images are too big on the product details page
 
-**Status:** open — not investigated yet
+**Status:** fixed — 2026-08-18
 **Found:** 2026-08-13
 **Where:** product details page
 
-**Steps to reproduce**
+**Root cause:** `ProductDetailView.tsx` wrapped the whole two-column row (image + info) in a `lg:max-w-[calc((100svh-14rem)*4/3+3rem)]` cap meant to stop the gallery image from exceeding one screen's height. Capping the *row* instead of just the image meant the info column — and the row's own centering — paid for a constraint that was only about the image; at ordinary desktop heights (measured 1920×855) the whole row shrank to 889px inside a 1312px-wide container, leaving ~210px of dead symmetric margin on each side.
 
-1. Open any product's details page
-2. Look at the product image(s)
-
-**Expected:** the image sits at a size that fits the page layout without dominating it.
-
-**Actual:** the image renders too large.
-
-**Notes**
-
-- Visual/layout issue, not a data issue.
-- Worth confirming which viewport(s) it happens on (desktop, tablet, mobile) and whether it's the main image, the gallery thumbnails, or both.
-- Check against the intended visuals in `docs/designs/` before resizing.
+**Fix:** removed the row-level wrapper; the height cap now lives directly on the gallery's main-slide box in `ProductGallery.tsx` (`lg:max-w-[calc(100svh-14rem)]`), so only the image shrinks on short viewports and the row always uses the full page container width like every other section. See also #7 below — the slide also moved from `aspect-4/5` to `aspect-square` as part of the same pass.
 
 ---
 
@@ -183,6 +172,10 @@ That's at least three distinct crop ratios (4:5, 1:1, and two different near-squ
 **Net result:** nothing is destructively cropped or re-encoded — the original upload is preserved untouched on Cloudinary, and Next's built-in image optimizer resizing (via `sizes` on each `next/image`) is normal responsive-image behavior, not a bug. The actual problem is purely presentational: inconsistent `object-cover` box ratios across components, with no upload-time cropping tool or aspect-ratio guidance to help the admin pick a source photo that survives all of them.
 
 **Fix direction (not yet applied):** either (a) standardize on a single aspect ratio for all product-image boxes site-wide, or (b) add a crop/preview step to `ProductMediaUploader` so the admin can see and adjust the framing for the ratios actually in use before publishing, or (c) at minimum document the required source aspect ratio (e.g. "shoot/crop to 4:5 before uploading") next to the dropzone.
+
+**Partial fix, 2026-08-18:** `ProductGallery`'s main slide moved from `aspect-4/5` to `aspect-square`, so it now matches its own thumbnail strip and `ProductCard` — one fewer distinct ratio in the table above. What's left is genuinely a content problem, not layout: e.g. "Classic Silverrrrr"'s source photo has a lot of white padding baked into the file itself (product occupies a small fraction of the frame) versus "Flame Yellow n White" filling its frame edge-to-edge — confirmed live that the gallery box itself renders pixel-identical between the two, so the size difference visitors see is the photo's own framing, not the box. (b) or (c) above is still the real fix for that.
+
+Also noted while touching `ProductGallery.tsx`: the main slide's `sizes` hint (`"(min-width: 1440px) 760px, (min-width: 1024px) 60vw, 100vw"`) was tuned to the old 60%-of-row column width. Now that the box is height-capped via `calc(100svh-14rem)` on many viewports, the actual rendered width is often smaller than that hint, so Next may fetch a slightly larger source image than needed. Not a visual bug, just a minor over-fetch — worth revisiting the `sizes` value if this component gets touched again.
 
 ---
 

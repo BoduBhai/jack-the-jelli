@@ -7,7 +7,7 @@ export default function ProductLoading() {
       <div className="mx-auto max-w-360 px-5 pt-32 pb-32 md:px-16 md:pt-40">
         <div className="flex flex-col gap-10 lg:flex-row lg:gap-12">
           <div className="w-full lg:w-3/5">
-            <Skeleton className="bg-surface-container aspect-4/5 w-full rounded-none" />
+            <Skeleton className="bg-surface-container aspect-square w-full rounded-none lg:mx-auto lg:max-w-[calc(100svh-14rem)]" />
             <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-6">
               {Array.from({ length: 4 }).map((_, i) => (
                 <Skeleton key={i} className="aspect-square rounded-none" />
