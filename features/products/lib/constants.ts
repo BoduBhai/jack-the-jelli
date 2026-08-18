@@ -10,6 +10,24 @@ export type SortOption = (typeof SORT_OPTIONS)[number];
 
 export const DEFAULT_SORT: SortOption = "newest";
 
+/** Rows the predictive search panel shows before deferring to "See all N". */
+export const SUGGESTION_LIMIT = 6;
+
+/** Categories are a hint above the product rows, not a second list to scan. */
+export const CATEGORY_SUGGESTION_LIMIT = 2;
+
+/**
+ * A single letter matches most of the catalogue, so the panel stays shut until
+ * the query is worth a round trip.
+ */
+export const SEARCH_MIN_CHARS = 2;
+
+/**
+ * Shorter than the admin tables' 300ms: this opens a panel in place rather than
+ * pushing a URL, so it can afford to feel immediate.
+ */
+export const SUGGEST_DEBOUNCE_MS = 180;
+
 /**
  * URL search params and Server Action arguments are untrusted at runtime — the
  * TypeScript annotations on both are erased before the request arrives. Every

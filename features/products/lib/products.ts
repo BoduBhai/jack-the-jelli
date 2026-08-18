@@ -4,13 +4,19 @@ import { connectDB } from "@/lib/db";
 import { escapeRegex } from "@/lib/slug";
 import { Category, Product, type IProduct } from "@/models";
 import {
+  CATEGORY_SUGGESTION_LIMIT,
   DEFAULT_SORT,
   PRODUCTS_PER_PAGE,
+  SEARCH_MIN_CHARS,
+  SUGGESTION_LIMIT,
   type SortOption,
 } from "@/features/products/lib/constants";
 import type {
+  CategorySuggestion,
   Product as PublicProduct,
   ProductDetail,
+  ProductSuggestion,
+  SuggestionsResult,
 } from "@/features/products/lib/types";
 
 // Server-only: pulls in Mongoose. Returns plain, serializable objects since
@@ -100,6 +106,49 @@ async function resolveCategoryId(
   return category?._id ?? null;
 }
 
+type LeanCategory = { _id: Types.ObjectId; name: string; slug: string };
+
+interface SearchMatch {
+  /** Merged into the product filter. */
+  filter: QueryFilter<IProduct>;
+  /** The categories the query hit, for the search panel's shortcut rows. */
+  categories: LeanCategory[];
+}
+
+/**
+ * The one definition of what "searching the collection" means, shared by the
+ * grid and the predictive panel. If only one of them knew about the category
+ * widening, the panel's "See all 7 results" would land on a grid showing 3.
+ *
+ * Matches a product when its own name matches, or when it sits in a category
+ * whose name does — so "wallets" finds the whole category, not just the pieces
+ * with "wallet" in the title.
+ */
+async function matchSearch(search: string): Promise<SearchMatch> {
+  // Escaped so a stray "(" in the search box can't throw a regex error.
+  const pattern = new RegExp(escapeRegex(search), "i");
+
+  // Unbounded on purpose: a storefront has a handful of categories, and the
+  // filter needs every matching id even though the panel only shows two.
+  const categories = await Category.find({ name: pattern })
+    .sort({ name: 1 })
+    .select("name slug")
+    .lean<LeanCategory[]>();
+
+  return {
+    filter: categories.length
+      ? {
+          $or: [
+            { name: pattern },
+            { category: { $in: categories.map((c) => c._id) } },
+          ],
+        }
+      : // No pointless $or when nothing matched.
+        { name: pattern },
+    categories,
+  };
+}
+
 export interface PublicProductQuery {
   q?: string;
   categorySlug?: string;
@@ -133,8 +182,7 @@ export async function getPublicProducts({
 
   const search = q?.trim();
   if (search) {
-    // Escaped so a stray "(" in the search box can't throw a regex error.
-    filter.name = new RegExp(escapeRegex(search), "i");
+    Object.assign(filter, (await matchSearch(search)).filter);
   }
 
   if (categorySlug?.trim()) {
@@ -159,6 +207,84 @@ export async function getPublicProducts({
     total,
     page: currentPage,
     totalPages,
+  };
+}
+
+const EMPTY_SUGGESTIONS: Omit<SuggestionsResult, "q"> = {
+  products: [],
+  categories: [],
+  total: 0,
+};
+
+/**
+ * Backs the predictive search panel. Runs on the same `matchSearch` filter as
+ * the grid, and honours the category filter the grid is currently under, so the
+ * "See all N results" count is the number the shopper actually lands on after
+ * submitting.
+ *
+ * The category *rows* deliberately stay unfiltered: they switch the filter
+ * rather than sit inside it, so they're the way out when the active category
+ * has no match for what was typed.
+ */
+export async function getProductSuggestions({
+  q,
+  categorySlug,
+}: {
+  q: string;
+  categorySlug?: string;
+}): Promise<SuggestionsResult> {
+  const search = q.trim();
+  if (search.length < SEARCH_MIN_CHARS) {
+    return { q: search, ...EMPTY_SUGGESTIONS };
+  }
+
+  await connectDB();
+
+  const { filter: searchFilter, categories } = await matchSearch(search);
+  const categorySuggestions = categories
+    .slice(0, CATEGORY_SUGGESTION_LIMIT)
+    .map(({ name, slug }): CategorySuggestion => ({ name, slug }));
+
+  const filter: QueryFilter<IProduct> = {
+    status: "Published",
+    ...searchFilter,
+  };
+
+  if (categorySlug?.trim()) {
+    const categoryId = await resolveCategoryId(categorySlug);
+    // Same rule as getPublicProducts: an unknown slug matches nothing rather
+    // than quietly widening to everything.
+    if (!categoryId) {
+      return {
+        q: search,
+        ...EMPTY_SUGGESTIONS,
+        categories: categorySuggestions,
+      };
+    }
+    filter.category = categoryId;
+  }
+
+  // No `populate` and a narrow `select`, unlike findLeanProducts: a suggestion
+  // row draws a thumb, a name and a price, so anything else is a wasted read.
+  const [products, total] = await Promise.all([
+    Product.find(filter)
+      .sort(SORT_MAP[DEFAULT_SORT])
+      .limit(SUGGESTION_LIMIT)
+      .select("slug name price thumbnail")
+      .lean<ProductSuggestion[]>(),
+    Product.countDocuments(filter),
+  ]);
+
+  return {
+    q: search,
+    products: products.map((product) => ({
+      slug: product.slug,
+      name: product.name,
+      price: product.price,
+      thumbnail: product.thumbnail,
+    })),
+    categories: categorySuggestions,
+    total,
   };
 }
 

@@ -1,8 +1,11 @@
 "use server";
 
 import { toPageNumber, toSortOption } from "@/features/products/lib/constants";
-import { getPublicProducts } from "@/features/products/lib/products";
-import type { Product } from "@/features/products/lib/types";
+import {
+  getProductSuggestions,
+  getPublicProducts,
+} from "@/features/products/lib/products";
+import type { Product, SuggestionsResult } from "@/features/products/lib/types";
 
 export interface LoadMoreProductsResult {
   products: Product[];
@@ -41,4 +44,25 @@ export async function loadMoreProducts(params: {
     page: result.page,
     totalPages: result.totalPages,
   };
+}
+
+/**
+ * Feeds the collection page's predictive search panel, called from the client
+ * on a debounce as the shopper types. Same trust level as `loadMoreProducts`:
+ * public catalogue data, no auth guard, but the argument is re-validated
+ * because a Server Action is a public HTTP endpoint and its parameter type is
+ * erased at runtime.
+ *
+ * The ceiling on the work one call can ask for is this 100-character clamp plus
+ * the minimum length and row limit enforced inside `getProductSuggestions`.
+ */
+export async function searchProductSuggestions(params: {
+  q?: string;
+  category?: string;
+}): Promise<SuggestionsResult> {
+  return getProductSuggestions({
+    q: typeof params.q === "string" ? params.q.slice(0, 100) : "",
+    categorySlug:
+      typeof params.category === "string" ? params.category : undefined,
+  });
 }

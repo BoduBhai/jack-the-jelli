@@ -80,6 +80,11 @@ productSchema.index({ status: 1, createdAt: -1 }); // default browse + "newest"
 productSchema.index({ status: 1, price: 1 }); // price sorts + related products
 productSchema.index({ status: 1, category: 1, createdAt: -1 }); // category filter
 
+// Search is an unanchored /foo/i regex, which can never *seek* an index — this
+// only lets Mongo scan the index instead of the collection. A modest win, and
+// the honest fix if search ever gets slow is a text index or Atlas Search.
+productSchema.index({ status: 1, name: 1 });
+
 // Derive the slug from the name, de-duplicating with a numeric suffix. The
 // unique index is still the last line of defence against a race.
 productSchema.pre("validate", async function () {
